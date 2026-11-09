@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "title": "WasteLoop — surplus food and organic waste exchange",
+    "description": "WasteLoop connects people with surplus food and organic waste to farmers, energy plants, recyclers and charities who can use it."
+  },
+  "common": {
+    "appName": "WasteLoop",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "backHome": "Back to home",
+    "skipToContent": "Skip to main content",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mainNavigation": "Main navigation",
+    "language": "Language",
+    "switchLanguage": "Switch language to {language}",
+    "languageNames": {
+      "bn": "বাংলা",
+      "en": "English"
+    }
+  },
+  "nav": {
+    "browse": "Browse",
+    "postListing": "Post surplus",
+    "howItWorks": "How it works",
+    "dashboard": "Dashboard",
+    "signIn": "Log in",
+    "register": "Create account"
+  },
+  "footer": {
+    "tagline": "Keeping food and organic waste in the loop.",
+    "copyright": "© {year} WasteLoop",
+    "platformNotice": "WasteLoop is a connection and coordination platform only. It does not operate vehicles, hold funds, certify food safety or process waste."
+  },
+  "landing": {
+    "hero": {
+      "eyebrow": "Food and organic waste exchange",
+      "title": "Your surplus is someone else's resource.",
+      "subtitle": "Restaurants, shops, caterers and households post what they have left over. Farmers, energy plants, recyclers and charities pick it up.",
+      "ctaBrowse": "Browse listings",
+      "ctaPost": "Post your surplus"
+    },
+    "streams": {
+      "title": "Four streams, one place",
+      "subtitle": "Every listing belongs to one stream, so it reaches the people who can actually use it.",
+      "edible_food": {
+        "body": "Cooked meals, bread, produce and packaged food that is still good to eat.",
+        "takers": "Taken by charities and community kitchens"
+      },
+      "organic_compostable": {
+        "body": "Peels, trimmings, spoiled produce and garden waste.",
+        "takers": "Taken by farmers for compost and animal feed"
+      },
+      "plastic_recyclable": {
+        "body": "Clean food packaging, bottles and containers.",
+        "takers": "Taken by recyclers and scrap buyers"
+      },
+      "energy_feedstock": {
+        "body": "Used cooking oil and bulk organic waste for biogas.",
+        "takers": "Taken by waste-to-energy plants"
+      }
+    },
+    "how": {
+      "title": "How it works",
+      "step1Title": "Post it",
+      "step1Body": "Say what it is, where it is, and when it can be collected. It takes under a minute.",
+      "step2Title": "Get matched",
+      "step2Body": "Nearby takers see your listing and send a request. You choose who to accept.",
+      "step3Title": "Hand it over",
+      "step3Body": "Agree a pickup time in the chat, meet, and both confirm the handover."
+    },
+    "notice": {
+      "title": "What WasteLoop does, and what it doesn't",
+      "body": "We connect people and help them coordinate. We do not collect, transport, buy, certify or process anything. The two parties arrange the handover themselves."
+    }
+  },
+  "streams": {
+    "edible_food": "Edible food",
+    "organic_compostable": "Organic & compostable",
+    "plastic_recyclable": "Plastic & recyclable",
+    "energy_feedstock": "Energy feedstock"
+  },
+  "listingStatus": {
+    "draft": "Draft",
+    "available": "Available",
+    "reserved": "Reserved",
+    "collected": "Collected",
+    "expired": "Expired",
+    "paused": "Paused",
+    "removed": "Removed"
+  },
+  "offerTypes": {
+    "free": "Free",
+    "donation": "Donation",
+    "for_sale": "For sale"
+  },
+  "roles": {
+    "provider": "Provider",
+    "farmer": "Farmer",
+    "energy_plant": "Waste-to-energy plant",
+    "recycler": "Recycler / buyer",
+    "charity": "Charity",
+    "admin": "Administrator"
+  },
+  "foodSafety": {
+    "notice": "WasteLoop does not certify food safety. Check the condition of the food in person before you accept it."
+  },
+  "errors": {
+    "genericTitle": "Something went wrong",
+    "genericBody": "This part of the page could not load. Your other work is safe. Try again, or go back to the home page.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you are looking for does not exist or has been moved.",
+    "reference": "Reference: {digest}"
+  }
+}

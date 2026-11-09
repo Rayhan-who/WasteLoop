@@ -1,0 +1,180 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Dark mode is driven by a `.dark` class on <html> (next-themes, system default). */
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------------- *
+ * WasteLoop palette — the ONLY colours the app may use (Build Prompt §7.5).
+ * Each colour has one job; see README → Visual design.
+ * ------------------------------------------------------------------------- */
+:root {
+  --wl-paper:#FBF8F1; --wl-surface:#FFFFFF; --wl-border:#E4DED1;
+  --wl-chrome:#1B2A41; --wl-chrome-soft:#2C3E5A; --wl-on-chrome:#F4F1EA;
+  --wl-on-chrome-dim:#A9B4C4;
+  --wl-ink:#1B2A41; --wl-ink-soft:#5F6864; --wl-ink-muted:#9AA29D;
+  --wl-grey-900:#2B2F2D; --wl-grey-700:#3A403D; --wl-grey-500:#5F6864;
+  --wl-grey-300:#9AA29D; --wl-grey-200:#CFCBC0; --wl-grey-100:#E4DED1;
+  --wl-primary:#1F6B47; --wl-primary-dark:#14492F; --wl-primary-tint:#E8F1EC;
+  --wl-money:#7B2D3B; --wl-money-dark:#5E1F2B; --wl-money-tint:#F6EAEC;
+  --wl-food:#C9552E;    --wl-food-tint:#FAEDE7;    --wl-food-text:#7A2E14;
+  --wl-compost:#4F7A2A; --wl-compost-tint:#EEF4E4; --wl-compost-text:#27500A;
+  --wl-recycle:#2563A8; --wl-recycle-tint:#E7EFF8; --wl-recycle-text:#0C447C;
+  --wl-energy:#6D4AA6;  --wl-energy-tint:#EFEAF7;  --wl-energy-text:#3C3489;
+  --wl-success:#15803D; --wl-pending:#B45309; --wl-pending-tint:#FDF3E3;
+  --wl-danger:#B42318;  --wl-info:#2563A8;
+
+  /* Derived aliases (no new colours): text on a saturated primary/money fill. */
+  --wl-on-primary: var(--wl-on-chrome);
+  --wl-pending-text: var(--wl-pending);
+
+  --radius: 0.625rem;
+}
+
+:root.dark {
+  --wl-paper:#121C2B; --wl-surface:#1B2A41; --wl-border:#2C3E5A;
+  --wl-chrome:#0D1521; --wl-chrome-soft:#2C3E5A;
+  --wl-ink:#ECE8DF; --wl-ink-soft:#9AA6B4; --wl-ink-muted:#6E7A88;
+  --wl-primary:#4FA97B; --wl-primary-dark:#3B8A61; --wl-primary-tint:#17291F;
+  --wl-money:#E8B4BF;  --wl-money-dark:#C2707E;  --wl-money-tint:#3A1C24;
+  --wl-food:#E88A64;    --wl-food-tint:#2E1A12;    --wl-food-text:#F5C4B3;
+  --wl-compost:#8FC059; --wl-compost-tint:#1C2612; --wl-compost-text:#C0DD97;
+  --wl-recycle:#6BA3E0; --wl-recycle-tint:#13212E; --wl-recycle-text:#B5D4F4;
+  --wl-energy:#A48BD4;  --wl-energy-tint:#201A2E;  --wl-energy-text:#CEC6E6;
+
+  /*
+   * Decision (README → Decisions): the spec's dark block does not redefine the
+   * grey scale or the status colours, which would leave grey-700 text and
+   * amber/red states unreadable on navy. These remap to values already in the
+   * dark palette, or mix existing tokens; no new hues are introduced.
+   */
+  --wl-grey-900:#ECE8DF; --wl-grey-700:#9AA6B4; --wl-grey-500:#6E7A88;
+  --wl-grey-300:#6E7A88; --wl-grey-200:#2C3E5A; --wl-grey-100:#2C3E5A;
+  --wl-on-primary: #121C2B;
+  --wl-pending-tint: color-mix(in srgb, #B45309 22%, #121C2B);
+  --wl-pending-text: color-mix(in srgb, #B45309 55%, #ECE8DF);
+  --wl-pending: color-mix(in srgb, #B45309 70%, #ECE8DF);
+  --wl-success: #4FA97B;
+  --wl-danger: color-mix(in srgb, #B42318 55%, #ECE8DF);
+  --wl-info: #6BA3E0;
+}
+
+/* ------------------------------------------------------------------------- *
+ * Tailwind theme. The default palette is removed so `bg-green-500` and
+ * friends do not exist; only `wl-*` utilities (and shadcn's semantic
+ * aliases, which point at wl tokens) can be used.
+ * ------------------------------------------------------------------------- */
+@theme {
+  --color-*: initial;
+}
+
+@theme inline {
+  --color-wl-paper: var(--wl-paper);
+  --color-wl-surface: var(--wl-surface);
+  --color-wl-border: var(--wl-border);
+  --color-wl-chrome: var(--wl-chrome);
+  --color-wl-chrome-soft: var(--wl-chrome-soft);
+  --color-wl-on-chrome: var(--wl-on-chrome);
+  --color-wl-on-chrome-dim: var(--wl-on-chrome-dim);
+  --color-wl-ink: var(--wl-ink);
+  --color-wl-ink-soft: var(--wl-ink-soft);
+  --color-wl-ink-muted: var(--wl-ink-muted);
+  --color-wl-grey-900: var(--wl-grey-900);
+  --color-wl-grey-700: var(--wl-grey-700);
+  --color-wl-grey-500: var(--wl-grey-500);
+  --color-wl-grey-300: var(--wl-grey-300);
+  --color-wl-grey-200: var(--wl-grey-200);
+  --color-wl-grey-100: var(--wl-grey-100);
+  --color-wl-primary: var(--wl-primary);
+  --color-wl-primary-dark: var(--wl-primary-dark);
+  --color-wl-primary-tint: var(--wl-primary-tint);
+  --color-wl-on-primary: var(--wl-on-primary);
+  --color-wl-money: var(--wl-money);
+  --color-wl-money-dark: var(--wl-money-dark);
+  --color-wl-money-tint: var(--wl-money-tint);
+  --color-wl-food: var(--wl-food);
+  --color-wl-food-tint: var(--wl-food-tint);
+  --color-wl-food-text: var(--wl-food-text);
+  --color-wl-compost: var(--wl-compost);
+  --color-wl-compost-tint: var(--wl-compost-tint);
+  --color-wl-compost-text: var(--wl-compost-text);
+  --color-wl-recycle: var(--wl-recycle);
+  --color-wl-recycle-tint: var(--wl-recycle-tint);
+  --color-wl-recycle-text: var(--wl-recycle-text);
+  --color-wl-energy: var(--wl-energy);
+  --color-wl-energy-tint: var(--wl-energy-tint);
+  --color-wl-energy-text: var(--wl-energy-text);
+  --color-wl-success: var(--wl-success);
+  --color-wl-pending: var(--wl-pending);
+  --color-wl-pending-tint: var(--wl-pending-tint);
+  --color-wl-pending-text: var(--wl-pending-text);
+  --color-wl-danger: var(--wl-danger);
+  --color-wl-info: var(--wl-info);
+
+  /* shadcn/ui semantic tokens, aliased onto the WasteLoop palette. */
+  --color-background: var(--wl-paper);
+  --color-foreground: var(--wl-ink);
+  --color-card: var(--wl-surface);
+  --color-card-foreground: var(--wl-ink);
+  --color-popover: var(--wl-surface);
+  --color-popover-foreground: var(--wl-ink);
+  --color-primary: var(--wl-primary);
+  --color-primary-foreground: var(--wl-on-primary);
+  --color-secondary: var(--wl-paper);
+  --color-secondary-foreground: var(--wl-grey-700);
+  --color-muted: var(--wl-paper);
+  --color-muted-foreground: var(--wl-ink-soft);
+  --color-accent: var(--wl-primary-tint);
+  --color-accent-foreground: var(--wl-ink);
+  --color-destructive: var(--wl-danger);
+  --color-border: var(--wl-border);
+  --color-input: var(--wl-border);
+  --color-ring: var(--wl-primary);
+
+  --font-sans: var(--font-inter), var(--font-hind-siliguri), ui-sans-serif, system-ui, sans-serif;
+  --font-bangla: var(--font-hind-siliguri), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-heading: var(--font-sans);
+
+  /* Two weights only (§7.5): 400 and 500. Bold maps to 500. */
+  --font-weight-semibold: 500;
+  --font-weight-bold: 500;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  /* Bangla needs a Bengali-script face; Inter has no coverage. */
+  :lang(bn) {
+    font-family: var(--font-bangla);
+  }
+  body {
+    @apply bg-wl-paper text-wl-ink;
+  }
+  b,
+  strong,
+  th {
+    font-weight: 500;
+  }
+  /* Visible focus ring on every keyboard-reachable element (accessibility). */
+  :focus-visible {
+    outline: 2px solid var(--wl-primary);
+    outline-offset: 2px;
+  }
+}
