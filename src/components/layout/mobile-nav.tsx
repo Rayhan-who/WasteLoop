@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { logoutAction } from "@/lib/actions/auth";
 import { LanguageSwitcher } from "./language-switcher";
 
 export type NavItem = { href: string; label: string };
@@ -11,16 +12,21 @@ export type NavItem = { href: string; label: string };
 /** Mobile-first navigation drawer; large touch targets (§4.2). */
 export function MobileNav({
   items,
+  signedIn,
   openLabel,
   closeLabel,
   title,
+  signOutLabel,
 }: {
   items: NavItem[];
+  signedIn: boolean;
   openLabel: string;
   closeLabel: string;
   title: string;
+  signOutLabel: string;
 }) {
   const [open, setOpen] = useState(false);
+  const itemClass = "flex min-h-12 w-full items-center gap-2 rounded-md px-3 text-base text-wl-on-chrome hover:bg-wl-chrome-soft";
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -36,16 +42,19 @@ export function MobileNav({
         </SheetHeader>
         <nav aria-label={title} className="flex flex-col gap-1 px-4">
           {items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className="flex min-h-12 items-center rounded-md px-3 text-base text-wl-on-chrome hover:bg-wl-chrome-soft"
-            >
+            <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className={itemClass}>
               {item.label}
             </Link>
           ))}
           <LanguageSwitcher className="mt-2 min-h-12 justify-start text-base" />
+          {signedIn ? (
+            <form action={logoutAction} className="mt-2 border-t border-wl-chrome-soft pt-2">
+              <button type="submit" className={itemClass}>
+                <LogOut aria-hidden className="size-5" />
+                {signOutLabel}
+              </button>
+            </form>
+          ) : null}
         </nav>
       </SheetContent>
     </Sheet>

@@ -1,23 +1,34 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { getCurrentUser } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/profile";
 import { LanguageSwitcher } from "./language-switcher";
 import { Logo } from "./logo";
 import { MobileNav, type NavItem } from "./mobile-nav";
+import { UserMenu } from "./user-menu";
 
 const linkClass =
   "inline-flex min-h-11 items-center rounded-md px-3 text-sm text-wl-on-chrome-dim transition-colors hover:text-wl-on-chrome";
 
 /** Site header: navy chrome (§7.5). Server Component; auth state is read per request. */
 export async function SiteHeader() {
-  const [t, tCommon, user] = await Promise.all([getTranslations("nav"), getTranslations("common"), getCurrentUser()]);
+  const [t, tCommon, tUser, profile] = await Promise.all([
+    getTranslations("nav"),
+    getTranslations("common"),
+    getTranslations("userMenu"),
+    getCurrentProfile(),
+  ]);
 
   const primaryNav: NavItem[] = [
     { href: "/browse", label: t("browse") },
     { href: "/listings/new", label: t("postListing") },
   ];
-  const accountNav: NavItem[] = user
-    ? [{ href: "/dashboard", label: t("dashboard") }]
+
+  const mobileAccountNav: NavItem[] = profile
+    ? [
+        { href: "/dashboard", label: tUser("dashboard") },
+        { href: "/settings", label: tUser("settings") },
+        ...(profile.isAdmin ? [{ href: "/admin", label: tUser("admin") }] : []),
+      ]
     : [
         { href: "/login", label: t("signIn") },
         { href: "/register", label: t("register") },
@@ -44,26 +55,30 @@ export async function SiteHeader() {
 
         <div className="hidden items-center gap-1 md:flex">
           <LanguageSwitcher />
-          {accountNav.map((item, i) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={
-                i === accountNav.length - 1
-                  ? "inline-flex min-h-11 items-center rounded-md border border-wl-chrome-soft px-4 text-sm text-wl-on-chrome transition-colors hover:bg-wl-chrome-soft"
-                  : linkClass
-              }
-            >
-              {item.label}
-            </Link>
-          ))}
+          {profile ? (
+            <UserMenu name={profile.org_name ?? profile.display_name} isAdmin={profile.isAdmin} />
+          ) : (
+            <>
+              <Link href="/login" className={linkClass}>
+                {t("signIn")}
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex min-h-11 items-center rounded-md border border-wl-chrome-soft px-4 text-sm text-wl-on-chrome transition-colors hover:bg-wl-chrome-soft"
+              >
+                {t("register")}
+              </Link>
+            </>
+          )}
         </div>
 
         <MobileNav
-          items={[...primaryNav, ...accountNav]}
+          items={[...primaryNav, ...mobileAccountNav]}
+          signedIn={profile !== null}
           openLabel={tCommon("openMenu")}
           closeLabel={tCommon("closeMenu")}
           title={tCommon("mainNavigation")}
+          signOutLabel={tUser("signOut")}
         />
       </div>
     </header>

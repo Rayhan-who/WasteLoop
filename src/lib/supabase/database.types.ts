@@ -48,6 +48,57 @@ export type Database = {
           },
         ]
       }
+      data_removal_requests: {
+        Row: {
+          id: string
+          user_id: string | null
+          email_snapshot: string | null
+          reason: string | null
+          status: string
+          handled_by: string | null
+          handled_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          email_snapshot?: string | null
+          reason?: string | null
+          status?: string
+          handled_by?: string | null
+          handled_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          email_snapshot?: string | null
+          reason?: string | null
+          status?: string
+          handled_by?: string | null
+          handled_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_removal_requests_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_removal_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       impact_records: {
         Row: {
           id: string

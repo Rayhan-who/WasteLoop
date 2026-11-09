@@ -12,7 +12,7 @@ WasteLoop connects **providers** (households, restaurants, grocery stores, cater
 |---|---|---|
 | 1 | Scaffold, Tailwind, shadcn/ui, next-intl (bn + en), Supabase clients, proxy, env template | ✅ Done |
 | 2 | Migrations, enums, tables, PostGIS, indexes, `listings_public`, RLS, `is_admin()`, `get_listing_detail()`, seed | ✅ Done |
-| 3 | Auth, roles, profiles, deactivation (FR-1.x) | ⏳ |
+| 3 | Auth, roles, profiles, deactivation (FR-1.x) | ✅ Done |
 | 4 | Listings wizard, photos, lifecycle, `ml/` seam (FR-3.x) | ⏳ |
 | 5 | Browse, filters, distance, map, saved interests (FR-4.1–4.4) | ⏳ |
 | 6 | Requests, messaging, pickups, state machine (FR-5.x, FR-6.1–6.3) | ⏳ |
@@ -58,6 +58,15 @@ npm run dev                  # http://localhost:3000
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm test` | Unit and database tests in `tests/` |
+
+### Supabase Auth settings
+
+In the Supabase dashboard under **Authentication → URL Configuration**:
+
+- **Site URL**: your deployment URL (for local work, `http://localhost:3000`).
+- **Redirect URLs**: add `http://localhost:3000/**` and `https://<your-domain>/**`. For Vercel preview deployments, also add `https://*-<team>.vercel.app/**`.
+
+Sign-up confirmation and password-reset e-mails land on [`/auth/confirm`](src/app/auth/confirm/route.ts). That route accepts both Supabase's default PKCE link (`?code=`) and the token-hash link that Supabase recommends for server-side rendering. To use the token-hash style, set the **Confirm signup** template link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard`, and the **Reset password** template link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`.
 | `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the migrations |
 
 ### Database
@@ -142,7 +151,11 @@ Every FR ID from the SRS maps to the file(s) that implement it. This table grows
 | §4.3 | Reliability: failures degrade, not crash | `error.tsx` + `loading.tsx` in each route group, [`src/app/global-error.tsx`](src/app/global-error.tsx) |
 | §4.7 | Bangla and English, Bangla default | [`src/i18n/`](src/i18n/), [`src/messages/`](src/messages/), [`src/components/layout/language-switcher.tsx`](src/components/layout/language-switcher.tsx), [`tests/i18n.test.ts`](tests/i18n.test.ts) |
 | §4.4 | Exact address revealed only after acceptance; coarse public location | [`004_listings.sql`](supabase/migrations/004_listings.sql), [`007_public_views.sql`](supabase/migrations/007_public_views.sql) (`listings_public`, `get_listing_detail`), [`008_rls.sql`](supabase/migrations/008_rls.sql), [`tests/db/privacy.test.ts`](tests/db/privacy.test.ts) |
-| FR-1.2 | Multiple roles per user; admin never self-granted | [`003_profiles_roles.sql`](supabase/migrations/003_profiles_roles.sql) (`user_roles`, `handle_new_user`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
+| FR-1.1 | Registration, login, logout, password reset | [`src/lib/actions/auth.ts`](src/lib/actions/auth.ts), [`src/app/(public)/(auth)/`](src/app/(public)/(auth)/), [`src/components/auth/`](src/components/auth/), [`src/app/auth/confirm/route.ts`](src/app/auth/confirm/route.ts), [`src/lib/validation/auth.ts`](src/lib/validation/auth.ts), [`tests/validation.test.ts`](tests/validation.test.ts), [`tests/db/account.test.ts`](tests/db/account.test.ts) |
+| FR-1.2 | Multiple roles per user, chosen at sign-up and editable; admin never self-granted | [`003_profiles_roles.sql`](supabase/migrations/003_profiles_roles.sql) (`user_roles`, `handle_new_user`), [`src/components/account/role-picker.tsx`](src/components/account/role-picker.tsx), [`src/lib/actions/account.ts`](src/lib/actions/account.ts) (`updateRolesAction`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
+| FR-1.x | Profile editing; language saved to the profile and restored at login | [`src/app/(app)/settings/page.tsx`](src/app/(app)/settings/page.tsx), [`src/components/settings/`](src/components/settings/), [`src/app/actions/locale.ts`](src/app/actions/locale.ts), [`src/lib/validation/profile.ts`](src/lib/validation/profile.ts) |
+| FR-1.x | Deactivation and data-removal request | [`010_account.sql`](supabase/migrations/010_account.sql), [`src/lib/actions/account.ts`](src/lib/actions/account.ts) (`deactivateAccountAction`), [`src/components/settings/deactivate-account.tsx`](src/components/settings/deactivate-account.tsx), [`tests/db/account.test.ts`](tests/db/account.test.ts) |
+| — | Role-aware dashboard | [`src/app/(app)/dashboard/page.tsx`](src/app/(app)/dashboard/page.tsx) |
 | FR-5.3 | Messaging opens only after acceptance | [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`is_accepted_request_party`), [`008_rls.sql`](supabase/migrations/008_rls.sql), [`tests/db/privacy.test.ts`](tests/db/privacy.test.ts) |
 | FR-6.1 | Pickup inside the availability window | [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`pickups_validate_window`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
 | FR-7.2 | Sequential receipt numbers | [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`receipt_number_seq`, `transactions_validate`) |
@@ -194,6 +207,14 @@ Choices made where the brief was ambiguous or the toolchain had changed.
 21. **Writes deferred to their milestones, with the DB already locked down.** Clients have no write access to `transactions` (milestone 7), `impact_records` (milestone 6) or other users' `notifications` (milestone 9). Request and pickup *transition* guards (who may accept, withdraw, confirm) are added as triggers with the state machine in milestone 6.
 22. **Database types are generated from the migrations.** No Supabase project or CLI is required: `npm run db:types` ([`scripts/gen-db-types.ts`](scripts/gen-db-types.ts)) introspects the migrated PGlite database and writes the same shape as `supabase gen types`. Table-function result fields are typed nullable, because `get_listing_detail()` deliberately returns `NULL` for withheld fields.
 23. **Trusted-operation flag.** `SECURITY DEFINER` functions that must bypass the owner-facing listing guard (for example, the view counter) call `begin_trusted_op()`, which sets a transaction-local setting. Clients cannot execute it or set the flag through the API.
+24. **`/auth/confirm` is a Route Handler.** The brief reserves Route Handlers for webhooks and cron. An e-mail confirmation or recovery link can only issue a GET, so this auth callback is the one exception. Every other auth step is a Server Action.
+25. **Validation messages are codes, not text.** Zod schemas in `src/lib/validation/` report codes such as `emailInvalid`. The same schema runs in the browser and in the Server Action, and the UI renders `validation.<code>` in the active language. Server Actions likewise return `formErrors.<code>`, never raw Supabase messages, which are English-only and can leak details.
+26. **No account enumeration.** Registration and "forgot password" show the same "check your inbox" result whether or not the e-mail address already has an account.
+27. **Deactivation is reversible; erasure is not.** Deactivating pauses the user's live listings, withdraws their pending requests, hides their profile and signs them out. Logging in again reactivates the account (paused listings stay paused). Ticking "delete my data" also files a `data_removal_requests` row, which an admin actions in milestone 11 by deleting the auth user. That deletion cascades, and the request row survives with `user_id` set to `NULL` as the compliance record. Suspended users are signed straight back out at login.
+28. **Typed confirmation for deactivation** accepts either `DEACTIVATE` or `নিষ্ক্রিয়`, so it works whatever keyboard the user has.
+29. **Phone numbers** must be Bangladeshi mobiles (`01[3-9]XXXXXXXX`, with or without `+880`), and are stored normalised as `+8801XXXXXXXXX`.
+30. **Theme preference is per browser.** The light / dark / system choice is stored by `next-themes` in the browser. Language follows the user across devices via `profiles.locale`, because it also controls the language of their notifications.
+31. **Profile coordinates come with the map.** The settings page edits the text area name ("Mirpur, Dhaka"). Picking the coarse point on a map (`profiles.approx_point`) arrives with the Leaflet map in milestone 5.
 
 ## Payments
 

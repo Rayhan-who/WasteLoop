@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Handshake, Info, MapPinned, PackagePlus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { Notice } from "@/components/forms/form-alert";
 import { StreamChip } from "@/components/listings/stream-chip";
 import { Button } from "@/components/ui/button";
 import { WASTE_TYPES } from "@/lib/domain";
@@ -10,8 +11,8 @@ import { WASTE_TYPES } from "@/lib/domain";
  * connection-platform-only notice. Live counters of waste diverted and
  * active listings are added once impact data exists (milestone 10).
  */
-export default async function LandingPage() {
-  const t = await getTranslations("landing");
+export default async function LandingPage({ searchParams }: PageProps<"/">) {
+  const [t, params] = await Promise.all([getTranslations("landing"), searchParams]);
 
   const steps = [
     { icon: PackagePlus, title: t("how.step1Title"), body: t("how.step1Body") },
@@ -21,6 +22,11 @@ export default async function LandingPage() {
 
   return (
     <>
+      {params.deactivated === "1" ? (
+        <div className="mx-auto w-full max-w-6xl px-4 pt-6">
+          <Notice>{t("deactivatedNotice")}</Notice>
+        </div>
+      ) : null}
       <section className="border-b border-wl-border">
         <div className="mx-auto max-w-6xl px-4 py-16 md:py-24">
           <p className="text-sm font-medium tracking-wide text-wl-primary uppercase">{t("hero.eyebrow")}</p>

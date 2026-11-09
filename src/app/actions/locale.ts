@@ -1,23 +1,27 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, isLocale } from "@/i18n/config";
+import { isLocale } from "@/i18n/config";
+import { setLocaleCookie } from "@/i18n/cookie";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 
 /**
- * Language switcher (SRS §4.7). Sets the locale cookie for this browser.
- * Milestone 3 extends this to persist the choice to profiles.locale for
- * signed-in users.
+ * Language switcher (SRS §4.7). Sets the locale cookie for this browser and,
+ * for a signed-in user, saves it to profiles.locale so it follows them to
+ * other devices (restored at login).
  */
 export async function setLocale(locale: string): Promise<void> {
   if (!isLocale(locale)) throw new Error("Unsupported locale");
 
-  const store = await cookies();
-  store.set(LOCALE_COOKIE, locale, {
-    path: "/",
-    maxAge: LOCALE_COOKIE_MAX_AGE,
-    sameSite: "lax",
-  });
+  await setLocaleCookie(locale);
+
+  const user = await getCurrentUser();
+  if (user) {
+    const supabase = await createClient();
+    // Best effort: a failure here must not block switching the UI language.
+    const { error } = await supabase.from("profiles").update({ locale }).eq("id", user.id);
+    if (error) console.error("setLocale: could not persist profile locale", error);
+  }
 
   revalidatePath("/", "layout");
 }

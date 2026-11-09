@@ -45,7 +45,9 @@ describe("message catalogues", () => {
   });
 
   it("uses the same ICU placeholders in both languages", () => {
-    const placeholders = (s: string) => [...s.matchAll(/\{(\w+)/g)].map((m) => m[1]).sort();
+    // ICU argument names only: "{name}" or "{count, plural, ...}". Plural branch text
+    // like "{No listings}" is not an argument, and languages may have different branches.
+    const placeholders = (s: string) => [...new Set([...s.matchAll(/\{\s*(\w+)\s*[,}]/g)].map((m) => m[1]))].sort();
     const mismatched = [...enFlat]
       .filter(([k, v]) => JSON.stringify(placeholders(v)) !== JSON.stringify(placeholders(bnFlat.get(k) ?? "")))
       .map(([k]) => k);

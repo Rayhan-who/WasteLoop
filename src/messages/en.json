@@ -17,7 +17,11 @@
     "languageNames": {
       "bn": "বাংলা",
       "en": "English"
-    }
+    },
+    "optional": "optional",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "close": "Close"
   },
   "nav": {
     "browse": "Browse",
@@ -72,7 +76,8 @@
     "notice": {
       "title": "What WasteLoop does, and what it doesn't",
       "body": "We connect people and help them coordinate. We do not collect, transport, buy, certify or process anything. The two parties arrange the handover themselves."
-    }
+    },
+    "deactivatedNotice": "Your account has been deactivated. Log in again at any time to reactivate it."
   },
   "streams": {
     "edible_food": "Edible food",
@@ -111,5 +116,172 @@
     "notFoundTitle": "Page not found",
     "notFoundBody": "The page you are looking for does not exist or has been moved.",
     "reference": "Reference: {digest}"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "invalid": "This value is not valid.",
+    "emailInvalid": "Enter a valid e-mail address, like name@example.com.",
+    "passwordTooShort": "Use at least 8 characters.",
+    "passwordTooLong": "Use 72 characters or fewer.",
+    "passwordsDontMatch": "The passwords do not match.",
+    "phoneInvalid": "Enter a Bangladeshi mobile number, like 01711-000000.",
+    "tooLong": "This is too long.",
+    "tooShort": "This is too short.",
+    "rolesRequired": "Choose at least one role.",
+    "confirmationMismatch": "Type the word exactly as shown."
+  },
+  "formErrors": {
+    "validation": "Please fix the highlighted fields.",
+    "invalidCredentials": "That e-mail and password do not match an account.",
+    "emailNotConfirmed": "Please confirm your e-mail first. Check your inbox for the link we sent.",
+    "emailTaken": "An account with this e-mail already exists. Try logging in instead.",
+    "weakPassword": "This password is too easy to guess. Choose a longer or less common one.",
+    "samePassword": "Your new password must be different from the old one.",
+    "rateLimited": "Too many attempts. Please wait a few minutes and try again.",
+    "accountSuspended": "This account has been suspended. Contact support if you think this is a mistake.",
+    "sessionExpired": "Your session has expired. Please start again.",
+    "notAllowed": "You are not allowed to do that.",
+    "generic": "Something went wrong. Please try again."
+  },
+  "roleDescriptions": {
+    "provider": "I have surplus food or waste to give away or sell",
+    "farmer": "I use organic waste for compost or animal feed",
+    "energy_plant": "I turn organic waste or used oil into energy",
+    "recycler": "I buy or collect recyclable plastics",
+    "charity": "I collect food for people in need"
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "subtitle": "Welcome back to WasteLoop.",
+      "email": "E-mail",
+      "password": "Password",
+      "submit": "Log in",
+      "forgot": "Forgot your password?",
+      "noAccount": "New to WasteLoop?",
+      "register": "Create an account",
+      "linkExpired": "That link has expired or was already used. Please log in, or request a new link."
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Free for everyone. It takes about a minute.",
+      "displayName": "Your name",
+      "orgName": "Business or organisation name",
+      "orgNameHint": "Shown on your listings, for example “Shapla Restaurant”.",
+      "email": "E-mail",
+      "phone": "Mobile number",
+      "phoneHint": "Only shared with people you exchange with.",
+      "password": "Password",
+      "passwordHint": "At least 8 characters.",
+      "confirmPassword": "Confirm password",
+      "rolesLabel": "How will you use WasteLoop?",
+      "rolesHint": "Choose all that apply. You can change this later.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Log in",
+      "checkEmailTitle": "Check your inbox",
+      "checkEmailBody": "If {email} can be registered, we have sent it a confirmation link. Open it to finish creating your account."
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "subtitle": "Enter your e-mail and we will send you a link to choose a new password.",
+      "email": "E-mail",
+      "submit": "Send reset link",
+      "sentTitle": "Check your inbox",
+      "sentBody": "If an account exists for {email}, a reset link is on its way. It expires in one hour.",
+      "backToLogin": "Back to log in"
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "subtitle": "You will stay signed in on this device.",
+      "password": "New password",
+      "confirmPassword": "Confirm new password",
+      "submit": "Save new password",
+      "success": "Your password has been changed.",
+      "expiredTitle": "This reset link is no longer valid",
+      "expiredBody": "Reset links work once and expire after an hour. Request a new one to continue.",
+      "requestNew": "Request a new link"
+    }
+  },
+  "userMenu": {
+    "label": "Account menu for {name}",
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "admin": "Admin",
+    "signOut": "Log out"
+  },
+  "dashboard": {
+    "title": "Hello, {name}",
+    "subtitle": "Here is what is happening with your exchanges.",
+    "reactivated": "Welcome back. Your account is active again. Listings you paused stay paused until you turn them back on.",
+    "provider": {
+      "title": "Your listings",
+      "activeListings": "{count, plural, =0 {No live listings} one {# live listing} other {# live listings}}",
+      "pendingIncoming": "{count, plural, =0 {No requests waiting} one {# request waiting for your answer} other {# requests waiting for your answer}}",
+      "postListing": "Post surplus",
+      "myListings": "My listings",
+      "emptyHint": "Post your first listing. Nearby takers will see it straight away."
+    },
+    "taker": {
+      "title": "Your requests",
+      "activeRequests": "{count, plural, =0 {No open requests} one {# open request} other {# open requests}}",
+      "browse": "Browse listings",
+      "myRequests": "My requests",
+      "emptyHint": "Browse listings near you and send a request to the provider."
+    },
+    "impact": {
+      "title": "Your impact",
+      "kgDiverted": "{kg} kg kept out of landfill",
+      "none": "Your impact appears here after your first completed handover.",
+      "view": "See your impact"
+    },
+    "noRoles": "You have no roles yet. Choose how you use WasteLoop in settings.",
+    "completeProfile": "Add your area in settings so we can show listings near you first.",
+    "goToSettings": "Go to settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": {
+      "title": "Profile",
+      "description": "Other people see your name, organisation, area and bio. Your phone number is shared only with people you exchange with.",
+      "email": "E-mail",
+      "emailHint": "Your sign-in address. It is never shown publicly.",
+      "displayName": "Your name",
+      "orgName": "Business or organisation name",
+      "phone": "Mobile number",
+      "bio": "About you",
+      "bioHint": "A sentence or two about what you offer or collect.",
+      "generalLocation": "Area",
+      "generalLocationHint": "Neighbourhood and city, for example “Mirpur, Dhaka”. Never your exact address.",
+      "save": "Save profile",
+      "saved": "Profile saved."
+    },
+    "roles": {
+      "title": "Roles",
+      "description": "Your roles decide what you can do: providers post listings, takers send requests.",
+      "save": "Save roles",
+      "saved": "Roles updated."
+    },
+    "preferences": {
+      "title": "Language and appearance",
+      "language": "Language",
+      "theme": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "Same as device",
+      "saved": "Preference saved."
+    },
+    "account": {
+      "title": "Deactivate account",
+      "description": "Deactivating hides your profile, pauses your listings and withdraws your pending requests. Log in again at any time to reactivate.",
+      "deactivate": "Deactivate my account",
+      "dialogTitle": "Deactivate your account?",
+      "dialogBody": "Your live listings will be paused and your pending requests withdrawn. Exchanges already accepted are not cancelled.",
+      "confirmLabel": "Type {word} to confirm",
+      "requestRemoval": "Also ask for my personal data to be deleted",
+      "requestRemovalHint": "An administrator will erase your account and personal data. This cannot be undone.",
+      "reason": "Reason (optional)",
+      "confirm": "Deactivate"
+    }
   }
 }
