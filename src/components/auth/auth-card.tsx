@@ -21,7 +21,7 @@ export function AuthCard({
   wide?: boolean;
 }) {
   return (
-    <div className={cn("w-full", wide ? "max-w-xl" : "max-w-sm")}>
+    <div className={cn("w-full", wide ? "max-w-lg" : "max-w-sm")}>
       <div className="overflow-hidden rounded-[2rem] border border-wl-border bg-wl-surface shadow-[0_24px_60px_-20px_rgb(0_0_0/0.35)]">
         <div className="rounded-b-[2rem] bg-wl-inverse px-6 pt-9 pb-8 text-center text-wl-on-inverse">
           <h2 className="text-xl font-medium tracking-[0.12em] uppercase">{title}</h2>

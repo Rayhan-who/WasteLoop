@@ -1,20 +1,18 @@
 /**
  * Route access rules, shared by the proxy (src/proxy.ts) and layouts.
- * Route groups — (public), (app), (admin) — do not appear in URLs, so the
- * guard matches URL prefixes.
+ *
+ * Login-first (product decision, README → Decisions): every page requires a
+ * signed-in user EXCEPT the few listed here. Deny-by-default means a page
+ * added later is protected automatically.
  */
 
-/** Paths that require a signed-in user: the (app) route group. */
-export const APP_PATH_PATTERNS: readonly RegExp[] = [
-  /^\/dashboard(\/|$)/,
-  /^\/listings\/new(\/|$)/,
-  /^\/listings\/[^/]+\/edit(\/|$)/,
-  /^\/my-listings(\/|$)/,
-  /^\/requests(\/|$)/,
-  /^\/interests(\/|$)/,
-  /^\/impact(\/|$)/,
-  /^\/notifications(\/|$)/,
-  /^\/settings(\/|$)/,
+/** The only pages reachable without signing in. */
+export const PUBLIC_PATH_PATTERNS: readonly RegExp[] = [
+  /^\/login$/,
+  /^\/register$/,
+  /^\/forgot-password$/,
+  /^\/reset-password$/, // needs the session created by the recovery link; shows "link expired" without one
+  /^\/auth\//, // e-mail confirmation / recovery callback
 ];
 
 /** Paths for administrators: the (admin) route group. The role itself is re-checked server-side with is_admin(). */
@@ -26,16 +24,17 @@ export const AUTH_PATHS: readonly string[] = ["/login", "/register", "/forgot-pa
 export const LOGIN_PATH = "/login";
 export const AFTER_LOGIN_PATH = "/dashboard";
 
-export function isAppPath(pathname: string): boolean {
-  return APP_PATH_PATTERNS.some((re) => re.test(pathname));
+export function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATH_PATTERNS.some((re) => re.test(pathname));
 }
 
 export function isAdminPath(pathname: string): boolean {
   return ADMIN_PATH_PATTERN.test(pathname);
 }
 
+/** Everything that is not explicitly public needs a signed-in user. */
 export function isProtectedPath(pathname: string): boolean {
-  return isAppPath(pathname) || isAdminPath(pathname);
+  return !isPublicPath(pathname);
 }
 
 /** Only allow same-origin relative redirects (prevents open redirects via ?next=). */

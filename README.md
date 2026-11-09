@@ -148,10 +148,9 @@ Dark mode is the inverse: black page, white text and buttons.
 
 **Layouts:**
 
-- **Public** (landing): white header, black footer.
-- **Auth** (login, register, password reset): full-page, truck illustration plus the "member login" card with a black header band, pill inputs and a pill button.
+- **Login first:** there is no public page. Anyone not signed in lands on the login page. The auth pages (login, register, password reset) use a full-page layout: truck illustration plus the "member login" card with a black header band, pill inputs and a pill button, with the "connection platform only" notice underneath.
 - **Signed in** (the app): a white top bar with the logo, notifications bell and settings; a left sidebar on desktop and a bottom tab bar on phones, modelled on the supplied mobile design; black wave banners at the top of each page.
-- **Marketplace and listing pages:** readable by everyone. Signed-in users see them inside the app shell, visitors with the public header.
+- **Theme default:** light (mostly white) for everyone. Dark mode and "same as device" are available in Settings → Theme.
 
 Fonts: Inter for Latin script and Hind Siliguri for Bangla (applied on `:lang(bn)`), weights 400 and 500 only.
 
@@ -169,9 +168,10 @@ Every FR ID from the SRS maps to the file(s) that implement it. This table grows
 | FR-1.2 | Multiple roles per user, chosen at sign-up and editable; admin never self-granted | [`003_profiles_roles.sql`](supabase/migrations/003_profiles_roles.sql) (`user_roles`, `handle_new_user`), [`src/components/account/role-picker.tsx`](src/components/account/role-picker.tsx), [`src/lib/actions/account.ts`](src/lib/actions/account.ts) (`updateRolesAction`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
 | FR-1.x | Profile editing; language saved to the profile and restored at login | [`src/app/(app)/settings/page.tsx`](src/app/(app)/settings/page.tsx), [`src/components/settings/`](src/components/settings/), [`src/app/actions/locale.ts`](src/app/actions/locale.ts), [`src/lib/validation/profile.ts`](src/lib/validation/profile.ts) |
 | FR-1.x | Deactivation and data-removal request | [`010_account.sql`](supabase/migrations/010_account.sql), [`src/lib/actions/account.ts`](src/lib/actions/account.ts) (`deactivateAccountAction`), [`src/components/settings/deactivate-account.tsx`](src/components/settings/deactivate-account.tsx), [`tests/db/account.test.ts`](tests/db/account.test.ts) |
-| FR-4.1 | Marketplace: browse public listings by waste category and offer type, 20 per page, filtered in SQL | [`src/app/(market)/marketplace/page.tsx`](src/app/(market)/marketplace/page.tsx), [`src/lib/listings/queries.ts`](src/lib/listings/queries.ts), [`src/components/listings/`](src/components/listings/) |
-| §4.4 (UI) | Listing detail: approximate area for everyone, exact address only for owner / accepted taker / admin; food-safety notice on edible food | [`src/app/(market)/listings/[id]/page.tsx`](src/app/(market)/listings/[id]/page.tsx) |
-| — | Landing live counters | [`src/app/(public)/page.tsx`](src/app/(public)/page.tsx) (`public_impact_stats()`) |
+| FR-4.1 | Marketplace: browse public listings by waste category and offer type, 20 per page, filtered in SQL | [`src/app/(app)/marketplace/page.tsx`](src/app/(app)/marketplace/page.tsx), [`src/lib/listings/queries.ts`](src/lib/listings/queries.ts), [`src/components/listings/`](src/components/listings/) |
+| §4.4 (UI) | Listing detail: approximate area for everyone, exact address only for owner / accepted taker / admin; food-safety notice on edible food | [`src/app/(app)/listings/[id]/page.tsx`](src/app/(app)/listings/[id]/page.tsx) |
+| — | Community counters (kg diverted, active listings, completed handovers) | [`src/app/(app)/dashboard/page.tsx`](src/app/(app)/dashboard/page.tsx) (`public_impact_stats()`) |
+| — | Login-first access (deny by default) | [`src/lib/routes.ts`](src/lib/routes.ts), [`src/lib/supabase/middleware.ts`](src/lib/supabase/middleware.ts), [`src/app/page.tsx`](src/app/page.tsx), [`tests/routes.test.ts`](tests/routes.test.ts) |
 | — | Role-aware dashboard | [`src/app/(app)/dashboard/page.tsx`](src/app/(app)/dashboard/page.tsx) |
 | FR-5.3 | Messaging opens only after acceptance | [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`is_accepted_request_party`), [`008_rls.sql`](supabase/migrations/008_rls.sql), [`tests/db/privacy.test.ts`](tests/db/privacy.test.ts) |
 | FR-6.1 | Pickup inside the availability window | [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`pickups_validate_window`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
@@ -237,9 +237,12 @@ Choices made where the brief was ambiguous or the toolchain had changed.
 34. **`/marketplace` is the browse page.** The original spec calls it `/browse`; that route now redirects to `/marketplace`, keeping any filters.
 35. **Navigation never leads to a missing page.** [`src/lib/nav.ts`](src/lib/nav.ts) lists every app section with a `ready` flag. Sections arriving in later milestones (post a listing, requests, impact) stay hidden until their page exists. Notifications that link into such a section are shown without a link.
 36. **Notifications inbox ahead of milestone 9.** The bell in the design needs a destination, so a read-only inbox exists now. Live updates, mark-as-read and preferences arrive in milestone 9.
-37. **Requesting a listing arrives in milestone 6.** The listing page shows "Log in to request" to visitors, which works. Signed-in users see a disabled "Request this" button, which becomes live with the request flow.
+37. **Requesting a listing arrives in milestone 6.** The listing page shows a disabled "Request this" button until the request flow exists.
 38. **Illustration licence.** The garbage-truck illustration matches Storyset's free style, which requires attribution, so the login page credits it. Replace it, or keep the credit, before publishing.
 39. **Marketplace sort.** Until distance sorting arrives in milestone 5, listings show available before reserved, newest first. This is also the documented fallback for FR-4.5 recommendations.
+
+40. **Login first, deny by default.** The product owner asked that nobody enters WasteLoop without logging in. [`src/lib/routes.ts`](src/lib/routes.ts) therefore lists the only public pages (login, register, forgot password, reset password, the auth e-mail callback); every other path, including ones added later, redirects to `/login?next=…`. This replaces the original spec's public landing page and public `/browse` and listing pages. The landing page's "connection platform only" notice moved under the auth card, and its live counters moved to the dashboard. The database-level privacy rules are unchanged, and they still matter: the anon key is public, so RLS remains the real protection.
+41. **Light theme by default.** The original spec defaulted to the device setting. The product owner's "mostly white" direction makes light the default; dark mode stays available in settings.
 
 ## Payments
 

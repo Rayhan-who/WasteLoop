@@ -137,5 +137,5 @@ export async function deactivateAccountAction(input: DeactivateInput): Promise<A
 
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
-  redirect("/?deactivated=1");
+  redirect("/login?deactivated=1");
 }

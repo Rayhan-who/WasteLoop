@@ -14,6 +14,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const params = await searchParams;
   const next = typeof params.next === "string" ? safeNextPath(params.next) : undefined;
   const linkExpired = params.error === "link_expired";
+  const deactivated = params.deactivated === "1";
 
   return (
     <AuthCard
@@ -34,6 +35,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         </>
       }
     >
+      {deactivated ? (
+        <p role="status" className="mb-4 rounded-xl bg-wl-chrome-soft p-3 text-center text-sm text-wl-ink">
+          {t("deactivatedNotice")}
+        </p>
+      ) : null}
       {linkExpired ? (
         <p role="alert" className="mb-4 rounded-xl bg-wl-pending-tint p-3 text-sm text-wl-pending-text">
           {t("linkExpired")}

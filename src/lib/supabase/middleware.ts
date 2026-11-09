@@ -8,7 +8,8 @@ import type { Database } from "./database.types";
 /**
  * Runs from src/proxy.ts on every page request:
  *  1. refreshes the Supabase session and writes rotated cookies to the response;
- *  2. redirects anonymous users away from (app) and (admin) paths;
+ *  2. redirects anonymous users to /login from every page that is not
+ *     explicitly public (login-first; see src/lib/routes.ts);
  *  3. redirects signed-in users away from login/register.
  *
  * The admin *role* is not checked here (that needs a DB round-trip); the
@@ -54,7 +55,8 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   };
 
   if (!user && isProtectedPath(pathname)) {
-    return redirectTo(LOGIN_PATH, { next: `${pathname}${search}` });
+    // Login-first: the home page goes straight to login; deeper links come back after login.
+    return pathname === "/" ? redirectTo(LOGIN_PATH) : redirectTo(LOGIN_PATH, { next: `${pathname}${search}` });
   }
 
   if (user && AUTH_PATHS.includes(pathname)) {

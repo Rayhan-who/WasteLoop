@@ -10,7 +10,8 @@ import truck from "@/assets/illustrations/garbage-truck.jpg";
  * left, card on the right. Mobile: compact illustration above the card.
  */
 export default async function AuthLayout({ children }: LayoutProps<"/">) {
-  const t = await getTranslations("auth.panel");
+  const [t, tFooter] = await Promise.all([getTranslations("auth.panel"), getTranslations("footer")]);
+  const year = new Date().getFullYear();
 
   return (
     <div className="flex min-h-dvh flex-col bg-wl-surface">
@@ -27,7 +28,7 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
               alt={t("illustrationAlt")}
               priority
               sizes="(min-width: 1024px) 560px, 80vw"
-              className="h-auto w-full max-w-xs sm:max-w-sm lg:max-w-lg"
+              className="h-auto w-full max-w-xs rounded-3xl sm:max-w-sm lg:max-w-lg"
             />
             <h1 id="auth-panel-title" className="mt-4 max-w-md text-2xl font-medium tracking-tight text-wl-ink sm:text-3xl">
               {t("title")}
@@ -47,6 +48,12 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
           <div className="flex w-full justify-center lg:justify-end">{children}</div>
         </div>
       </main>
+
+      {/* The "connection platform only" notice (Build Prompt §0) and copyright. */}
+      <footer className="border-t border-wl-border px-4 py-5 text-center text-xs leading-relaxed text-wl-ink-muted sm:px-8">
+        <p className="mx-auto max-w-3xl">{tFooter("platformNotice")}</p>
+        <p className="mt-1">{tFooter("copyright", { year })}</p>
+      </footer>
     </div>
   );
 }

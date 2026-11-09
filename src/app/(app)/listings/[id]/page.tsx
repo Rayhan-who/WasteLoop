@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { LISTING_STATUS_STYLES } from "@/lib/design/status";
 import type { ListingOfferType, ListingStatus, QuantityUnit, WasteType } from "@/lib/domain";
 import { listingPhotoUrl } from "@/lib/listings/queries";
-import { createClient, getCurrentUser } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 type Params = { id: string };
@@ -36,11 +36,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<Pa
   if (!listing || !listing.id) notFound();
 
   const supabase = await createClient();
-  const [t, tStatus, format, user, photos, provider] = await Promise.all([
+  const [t, tStatus, format, photos, provider] = await Promise.all([
     getTranslations("listing"),
     getTranslations("listingStatus"),
     getFormatter(),
-    getCurrentUser(),
     supabase.from("listing_photos").select("storage_path").eq("listing_id", listing.id).order("sort_order"),
     supabase
       .from("profiles_public")
@@ -140,10 +139,6 @@ export default async function ListingDetailPage({ params }: { params: Promise<Pa
 
             {listing.viewer_relation === "owner" ? (
               <p className="rounded-xl bg-wl-chrome-soft p-3 text-center text-sm">{t("yourListing")}</p>
-            ) : !user ? (
-              <Button asChild size="lg" className="h-12 w-full rounded-full">
-                <Link href={`/login?next=${encodeURIComponent(`/listings/${listing.id}`)}`}>{t("loginToRequest")}</Link>
-              </Button>
             ) : (
               <div className="space-y-2">
                 <Button size="lg" className="h-12 w-full rounded-full" disabled>

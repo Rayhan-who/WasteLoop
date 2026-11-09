@@ -50,7 +50,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
   const isProvider = profile.roles.includes("provider");
   const isTaker = profile.roles.some((r) => (TAKER_ROLES as readonly string[]).includes(r));
 
-  const [activeListings, pendingIncoming, activeRequests, impact, latest] = await Promise.all([
+  const [activeListings, pendingIncoming, activeRequests, impact, latest, community] = await Promise.all([
     isProvider
       ? supabase.from("listings").select("id", { count: "exact", head: true }).eq("provider_id", profile.id).in("status", ["available", "reserved"])
       : null,
@@ -66,6 +66,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
       : null,
     supabase.from("impact_records").select("quantity_kg").eq("user_id", profile.id),
     getLatestListings(3),
+    // Community counters (formerly on the public landing page). Optional: omitted on failure (§4.3).
+    supabase.rpc("public_impact_stats").then((r) => r.data?.[0] ?? null),
   ]);
   const photos = await Promise.all(latest.map((l) => listingPhotoUrl(l.cover_photo_path)));
   const kg = (impact.data ?? []).reduce((sum, r) => sum + Number(r.quantity_kg), 0);
@@ -120,6 +122,30 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
             tone="impact"
           />
         </section>
+
+        {community ? (
+          <section aria-labelledby="dash-community" className="rounded-2xl border border-wl-border bg-wl-surface p-5">
+            <h2 id="dash-community" className="text-xs tracking-wide text-wl-ink-muted uppercase">
+              {t("community.title")}
+            </h2>
+            <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <dd className="text-2xl font-medium text-wl-success">
+                  {format.number(Number(community.kg_diverted ?? 0), { maximumFractionDigits: 0 })}
+                </dd>
+                <dt className="text-sm text-wl-ink-soft">{t("community.kg")}</dt>
+              </div>
+              <div>
+                <dd className="text-2xl font-medium">{format.number(Number(community.active_listings ?? 0))}</dd>
+                <dt className="text-sm text-wl-ink-soft">{t("community.active")}</dt>
+              </div>
+              <div>
+                <dd className="text-2xl font-medium">{format.number(Number(community.completed_exchanges ?? 0))}</dd>
+                <dt className="text-sm text-wl-ink-soft">{t("community.completed")}</dt>
+              </div>
+            </dl>
+          </section>
+        ) : null}
 
         <section aria-labelledby="dash-new" className="space-y-3">
           <div className="flex items-end justify-between gap-3">

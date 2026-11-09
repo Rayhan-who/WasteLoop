@@ -65,7 +65,7 @@ export function RegisterForm() {
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
       <FormError code={formError} />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4">
         <TextField appearance="pill" label={t("displayName")} autoComplete="name" error={errors.displayName?.message} {...form.register("displayName")} />
         <TextField
           appearance="pill"

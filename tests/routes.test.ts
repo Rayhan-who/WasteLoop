@@ -1,15 +1,32 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { isAdminPath, isAppPath, isProtectedPath, safeNextPath } from "@/lib/routes";
+import { isAdminPath, isProtectedPath, isPublicPath, safeNextPath } from "@/lib/routes";
 
-describe("route guards", () => {
-  for (const path of ["/dashboard", "/listings/new", "/listings/abc/edit", "/my-listings", "/requests/1", "/settings"]) {
-    it(`${path} requires sign-in`, () => assert.equal(isAppPath(path), true));
+describe("route guards (login-first)", () => {
+  for (const path of ["/login", "/register", "/forgot-password", "/reset-password", "/auth/confirm"]) {
+    it(`${path} is reachable without signing in`, () => assert.equal(isPublicPath(path), true));
   }
 
-  for (const path of ["/", "/browse", "/listings/abc", "/login", "/register", "/dashboards-are-not-this"]) {
-    it(`${path} is public`, () => assert.equal(isProtectedPath(path), false));
+  for (const path of [
+    "/",
+    "/dashboard",
+    "/marketplace",
+    "/browse",
+    "/listings/abc",
+    "/listings/new",
+    "/notifications",
+    "/settings",
+    "/admin",
+    "/some-page-added-later",
+  ]) {
+    it(`${path} requires sign-in`, () => assert.equal(isProtectedPath(path), true));
   }
+
+  it("does not treat look-alike paths as public", () => {
+    assert.equal(isPublicPath("/login-help"), false);
+    assert.equal(isPublicPath("/registered"), false);
+    assert.equal(isPublicPath("/authentic"), false);
+  });
 
   it("guards the admin group", () => {
     assert.equal(isAdminPath("/admin"), true);
