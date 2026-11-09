@@ -109,7 +109,7 @@ All variables are listed and explained in [`.env.example`](.env.example). Only `
 
 ```
 src/
-  app/            (public)/ (app)/ (admin)/ api/   route groups
+  app/            (auth)/ (app)/ (admin)/ auth/   route groups (login-first)
   components/     ui/ (shadcn)  layout/  listings/  map/  exchange/  admin/
   i18n/           locale config and next-intl request config
   lib/
@@ -164,7 +164,7 @@ Every FR ID from the SRS maps to the file(s) that implement it. This table grows
 | §4.3 | Reliability: failures degrade, not crash | `error.tsx` + `loading.tsx` in each route group, [`src/app/global-error.tsx`](src/app/global-error.tsx) |
 | §4.7 | Bangla and English, Bangla default | [`src/i18n/`](src/i18n/), [`src/messages/`](src/messages/), [`src/components/layout/language-switcher.tsx`](src/components/layout/language-switcher.tsx), [`tests/i18n.test.ts`](tests/i18n.test.ts) |
 | §4.4 | Exact address revealed only after acceptance; coarse public location | [`004_listings.sql`](supabase/migrations/004_listings.sql), [`007_public_views.sql`](supabase/migrations/007_public_views.sql) (`listings_public`, `get_listing_detail`), [`008_rls.sql`](supabase/migrations/008_rls.sql), [`tests/db/privacy.test.ts`](tests/db/privacy.test.ts) |
-| FR-1.1 | Registration, login, logout, password reset | [`src/lib/actions/auth.ts`](src/lib/actions/auth.ts), [`src/app/(public)/(auth)/`](src/app/(public)/(auth)/), [`src/components/auth/`](src/components/auth/), [`src/app/auth/confirm/route.ts`](src/app/auth/confirm/route.ts), [`src/lib/validation/auth.ts`](src/lib/validation/auth.ts), [`tests/validation.test.ts`](tests/validation.test.ts), [`tests/db/account.test.ts`](tests/db/account.test.ts) |
+| FR-1.1 | Registration, login, logout, password reset | [`src/lib/actions/auth.ts`](src/lib/actions/auth.ts), [`src/app/(auth)/`](src/app/(auth)/), [`src/components/auth/`](src/components/auth/), [`src/app/auth/confirm/route.ts`](src/app/auth/confirm/route.ts), [`src/lib/validation/auth.ts`](src/lib/validation/auth.ts), [`tests/validation.test.ts`](tests/validation.test.ts), [`tests/db/account.test.ts`](tests/db/account.test.ts) |
 | FR-1.2 | Multiple roles per user, chosen at sign-up and editable; admin never self-granted | [`003_profiles_roles.sql`](supabase/migrations/003_profiles_roles.sql) (`user_roles`, `handle_new_user`), [`src/components/account/role-picker.tsx`](src/components/account/role-picker.tsx), [`src/lib/actions/account.ts`](src/lib/actions/account.ts) (`updateRolesAction`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
 | FR-1.x | Profile editing; language saved to the profile and restored at login | [`src/app/(app)/settings/page.tsx`](src/app/(app)/settings/page.tsx), [`src/components/settings/`](src/components/settings/), [`src/app/actions/locale.ts`](src/app/actions/locale.ts), [`src/lib/validation/profile.ts`](src/lib/validation/profile.ts) |
 | FR-1.x | Deactivation and data-removal request | [`010_account.sql`](supabase/migrations/010_account.sql), [`src/lib/actions/account.ts`](src/lib/actions/account.ts) (`deactivateAccountAction`), [`src/components/settings/deactivate-account.tsx`](src/components/settings/deactivate-account.tsx), [`tests/db/account.test.ts`](tests/db/account.test.ts) |
