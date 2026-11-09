@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
 import { SiteShell } from "@/components/layout/site-shell";
-import { LOGIN_PATH } from "@/lib/routes";
-import { getCurrentUser } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth";
 
 /**
  * (app): signed-in users only. The proxy already redirects anonymous
@@ -9,8 +7,6 @@ import { getCurrentUser } from "@/lib/supabase/server";
  * proxy must never be the only authorisation layer.
  */
 export default async function AppLayout({ children }: LayoutProps<"/">) {
-  const user = await getCurrentUser();
-  if (!user) redirect(LOGIN_PATH);
-
+  await requireUser();
   return <SiteShell>{children}</SiteShell>;
 }

@@ -11,7 +11,7 @@ WasteLoop connects **providers** (households, restaurants, grocery stores, cater
 | Milestone | Scope | State |
 |---|---|---|
 | 1 | Scaffold, Tailwind, shadcn/ui, next-intl (bn + en), Supabase clients, proxy, env template | ✅ Done |
-| 2 | Migrations, enums, tables, PostGIS, indexes, `listings_public`, RLS, `is_admin()`, `get_listing_detail()`, seed | ⏳ |
+| 2 | Migrations, enums, tables, PostGIS, indexes, `listings_public`, RLS, `is_admin()`, `get_listing_detail()`, seed | ✅ Done |
 | 3 | Auth, roles, profiles, deactivation (FR-1.x) | ⏳ |
 | 4 | Listings wizard, photos, lifecycle, `ml/` seam (FR-3.x) | ⏳ |
 | 5 | Browse, filters, distance, map, saved interests (FR-4.1–4.4) | ⏳ |
@@ -57,7 +57,39 @@ npm run dev                  # http://localhost:3000
 | `npm run build` | Production build |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
-| `npm test` | Unit tests in `tests/` |
+| `npm test` | Unit and database tests in `tests/` |
+| `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the migrations |
+
+### Database
+
+The schema lives in hand-written SQL migrations in [`supabase/migrations/`](supabase/migrations/), applied in numeric order:
+
+| File | Contents |
+|---|---|
+| `001_extensions.sql` | PostGIS and pgcrypto in the `extensions` schema |
+| `002_enums.sql` | All enums (mirrored in [`src/lib/domain.ts`](src/lib/domain.ts), with a compile-time check that they match) |
+| `003_profiles_roles.sql` | `profiles`, `user_roles`, `organisations`, `is_admin()` and role helpers, sign-up trigger |
+| `004_listings.sql` | `listings`, `listing_photos`, `saved_interests`, GIST indexes |
+| `005_exchange.sql` | `requests`, `messages`, `pickups`, `transactions`, `reviews` and their integrity triggers |
+| `006_trust_notifications_impact.sql` | `reports`, `notifications`, `notification_preferences`, `impact_records`, `admin_audit_log` |
+| `007_public_views.sql` | `listings_public`, `profiles_public`, `get_listing_detail()`, landing-page counters |
+| `008_rls.sql` | Grants and RLS policies for every table |
+| `009_storage.sql` | `listing-photos` (public) and `verification-docs` (private) buckets and policies |
+
+[`supabase/seed.sql`](supabase/seed.sql) creates eight demo accounts (password `WasteLoop#2026`) and 20 listings across Dhaka, in every stream, offer type and status. It also includes completed exchanges with reviews, a paid sale with a receipt, impact records, a verification queue and an open report.
+
+| Account | Role |
+|---|---|
+| `admin@wasteloop.test` | Administrator |
+| `shapla@wasteloop.test`, `nirob@wasteloop.test`, `utsob@wasteloop.test` | Providers |
+| `sobuj@wasteloop.test` | Farmer |
+| `biopower@wasteloop.test` | Waste-to-energy plant |
+| `purnota@wasteloop.test` | Recycler |
+| `annadan@wasteloop.test` | Charity (also a provider) |
+
+**How address privacy works (SRS §4.4).** The exact pickup address and point are stored on `listings`, and RLS lets only the listing owner, a taker whose request was accepted, and admins read those rows. Everyone else reads `listings_public`, which omits the address and snaps the pickup point to a ~500 m grid, or calls `get_listing_detail()`, which returns the exact address only to those three viewers. [`tests/db/privacy.test.ts`](tests/db/privacy.test.ts) proves this for anonymous, wrong-user and authorised callers.
+
+**How the database is tested.** `npm test` applies the real migrations and seed to PGlite, Postgres 18 compiled to WebAssembly, on top of a small shim of the schemas Supabase provides ([`tests/db/supabase-shim.sql`](tests/db/supabase-shim.sql)). Each query runs as an anonymous visitor, as a specific signed-in user, or as the table owner, the same way PostgREST runs it, with RLS in force. No Docker or Supabase project is needed.
 
 ### Environment variables
 
@@ -80,7 +112,8 @@ src/
 supabase/
   migrations/     NNN_*.sql
   seed.sql
-tests/
+scripts/          gen-db-types.ts (types from migrations)
+tests/            unit tests; db/ runs migrations + RLS tests in PGlite
 ```
 
 ## Visual design
@@ -108,6 +141,14 @@ Every FR ID from the SRS maps to the file(s) that implement it. This table grows
 | §4.2 | Usability: mobile-first, large touch targets, plain language | [`src/components/ui/button.tsx`](src/components/ui/button.tsx) (44px default), [`src/components/layout/`](src/components/layout/) |
 | §4.3 | Reliability: failures degrade, not crash | `error.tsx` + `loading.tsx` in each route group, [`src/app/global-error.tsx`](src/app/global-error.tsx) |
 | §4.7 | Bangla and English, Bangla default | [`src/i18n/`](src/i18n/), [`src/messages/`](src/messages/), [`src/components/layout/language-switcher.tsx`](src/components/layout/language-switcher.tsx), [`tests/i18n.test.ts`](tests/i18n.test.ts) |
+| §4.4 | Exact address revealed only after acceptance; coarse public location | [`004_listings.sql`](supabase/migrations/004_listings.sql), [`007_public_views.sql`](supabase/migrations/007_public_views.sql) (`listings_public`, `get_listing_detail`), [`008_rls.sql`](supabase/migrations/008_rls.sql), [`tests/db/privacy.test.ts`](tests/db/privacy.test.ts) |
+| FR-1.2 | Multiple roles per user; admin never self-granted | [`003_profiles_roles.sql`](supabase/migrations/003_profiles_roles.sql) (`user_roles`, `handle_new_user`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
+| FR-5.3 | Messaging opens only after acceptance | [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`is_accepted_request_party`), [`008_rls.sql`](supabase/migrations/008_rls.sql), [`tests/db/privacy.test.ts`](tests/db/privacy.test.ts) |
+| FR-6.1 | Pickup inside the availability window | [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`pickups_validate_window`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
+| FR-7.2 | Sequential receipt numbers | [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`receipt_number_seq`, `transactions_validate`) |
+| FR-7.3 | Free and donation listings never charged | [`004_listings.sql`](supabase/migrations/004_listings.sql) (`listings_price_only_for_sale`), [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`transactions_only_for_sale` + composite FK), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
+| FR-11.3 | Append-only admin audit log | [`006_trust_notifications_impact.sql`](supabase/migrations/006_trust_notifications_impact.sql), [`008_rls.sql`](supabase/migrations/008_rls.sql), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
+| — | RLS on every table; `is_admin()` from `user_roles` | [`008_rls.sql`](supabase/migrations/008_rls.sql), [`src/lib/auth.ts`](src/lib/auth.ts), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
 
 ## Deferred — Phase 2 (ML)
 
@@ -140,7 +181,19 @@ Choices made where the brief was ambiguous or the toolchain had changed.
 8. **Locale lives in a cookie (`NEXT_LOCALE`), not the URL.** Bangla is the default. The switcher sets the cookie, and from milestone 3 also saves `profiles.locale`, which is restored on login.
 9. **next-intl alias instead of its plugin.** `next.config.ts` sets the `next-intl/config` alias directly. For the features used here, that alias is all `createNextIntlPlugin` adds, but the plugin eagerly loads the native `@swc/core` binary, which Windows Application Control blocks on the development machine.
 10. **Tests use `node:test` rather than Vitest.** Vitest 5 depends on the native `rolldown` binary (blocked by the same policy) and its WebAssembly fallback cannot read non-ASCII project paths. Node's built-in runner with native TypeScript type stripping needs no native code. [`tests/support/resolve-hooks.mjs`](tests/support/resolve-hooks.mjs) adds the `@/` alias. `tsconfig.json` sets `erasableSyntaxOnly` and `verbatimModuleSyntax` so that the compiler rejects TypeScript that Node cannot strip.
-11. **`(admin)` route group arrives in milestone 2.** Its layout must call `is_admin()`, which is defined by the milestone 2 migrations. Until then the proxy still redirects anonymous users away from `/admin/*`, and no admin pages exist.
+11. **Non-admins get a 404 from `/admin`, not a 403.** The `(admin)` layout calls `is_admin()` and returns "not found", so admin pages are not advertised.
+12. **Public read models are owner-privileged views.** `listings_public` and `profiles_public` are intentionally not `security_invoker`. They must show safe columns of rows that RLS hides from the caller. Supabase's linter will flag them as "security definer views"; that is expected. They never select the exact address, exact point, phone or e-mail.
+13. **A request has no `completed` status.** The `request_status` enum in the brief stops at `accepted`. An exchange is complete when its pickup reaches `completed` (both handover confirmations). The request stays `accepted`.
+14. **Two reminder columns.** `pickups` has `reminder_24h_sent_at` and `reminder_2h_sent_at` instead of a single `reminder_sent_at`, because FR-6.2 sends reminders at both 24 h and 2 h.
+15. **Admins cannot read private messages.** The brief says messages are visible only to the two parties, so admin access to message bodies is excluded. Admins still see requests, pickups and payments.
+16. **FR-7.3 is declarative.** `transactions.offer_type` is pinned to `for_sale` by a CHECK constraint and tied to the listing by a composite foreign key on `(listing_id, offer_type)`. A charge on a free or donation listing cannot be stored at all, and a listing with a payment cannot be switched to free.
+17. **`price_amount` is the price of the whole listing,** not a per-unit price. Transactions must equal it exactly.
+18. **Supporting enums.** `quantity_unit`, `report_target`, `report_status` and `impact_side` are enums too, so the database rejects invalid values.
+19. **One organisation per user,** submitted for verification by its owner. Editing an approved organisation's legal details sends it back to `pending`.
+20. **Expired listings disappear immediately.** `listings_public` hides `available` listings whose window has passed, even before the hourly expiry cron flips them to `expired`.
+21. **Writes deferred to their milestones, with the DB already locked down.** Clients have no write access to `transactions` (milestone 7), `impact_records` (milestone 6) or other users' `notifications` (milestone 9). Request and pickup *transition* guards (who may accept, withdraw, confirm) are added as triggers with the state machine in milestone 6.
+22. **Database types are generated from the migrations.** No Supabase project or CLI is required: `npm run db:types` ([`scripts/gen-db-types.ts`](scripts/gen-db-types.ts)) introspects the migrated PGlite database and writes the same shape as `supabase gen types`. Table-function result fields are typed nullable, because `get_listing_detail()` deliberately returns `NULL` for withheld fields.
+23. **Trusted-operation flag.** `SECURITY DEFINER` functions that must bypass the owner-facing listing guard (for example, the view counter) call `begin_trusted_op()`, which sets a transaction-local setting. Clients cannot execute it or set the flag through the API.
 
 ## Payments
 

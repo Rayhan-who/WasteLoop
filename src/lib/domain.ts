@@ -1,3 +1,5 @@
+import type { Enums } from "@/lib/supabase/database.types";
+
 /**
  * Domain enums, mirrored 1:1 from the Postgres enums in supabase/migrations.
  * Keep these in the same order as the SQL definitions.
@@ -36,3 +38,24 @@ export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number];
 
 export const QUANTITY_UNITS = ["kg", "litre", "item", "bag"] as const;
 export type QuantityUnit = (typeof QUANTITY_UNITS)[number];
+
+// ---------------------------------------------------------------------------
+// Compile-time guard: these unions must match the Postgres enums exactly.
+// If a migration changes an enum, `npm run db:types` regenerates the types
+// and `tsc` fails here until this file is updated too.
+// ---------------------------------------------------------------------------
+type Equal<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+type Assert<T extends true> = T;
+
+export type EnumsMatchDatabase = [
+  Assert<Equal<UserRole, Enums<"user_role">>>,
+  Assert<Equal<WasteType, Enums<"waste_type">>>,
+  Assert<Equal<ListingOfferType, Enums<"listing_offer_type">>>,
+  Assert<Equal<ListingStatus, Enums<"listing_status">>>,
+  Assert<Equal<RequestStatus, Enums<"request_status">>>,
+  Assert<Equal<PickupStatus, Enums<"pickup_status">>>,
+  Assert<Equal<VerificationStatus, Enums<"verification_status">>>,
+  Assert<Equal<PaymentStatus, Enums<"payment_status">>>,
+  Assert<Equal<NotificationChannel, Enums<"notification_channel">>>,
+  Assert<Equal<QuantityUnit, Enums<"quantity_unit">>>,
+];
