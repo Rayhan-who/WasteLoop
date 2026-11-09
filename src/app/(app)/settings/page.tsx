@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { LogOut } from "lucide-react";
+import { PageBanner } from "@/components/app-shell/page-banner";
+import { Button } from "@/components/ui/button";
+import { logoutAction } from "@/lib/actions/auth";
 import { DeactivateAccount } from "@/components/settings/deactivate-account";
 import { PreferencesForm } from "@/components/settings/preferences-form";
 import { ProfileForm } from "@/components/settings/profile-form";
@@ -24,8 +28,9 @@ export default async function SettingsPage() {
   if (!profile) redirect(LOGIN_PATH);
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 md:py-12">
-      <h1 className="text-3xl font-medium">{t("title")}</h1>
+    <>
+    <PageBanner title={t("title")} />
+    <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 md:px-8">
 
       <SettingsSection id="settings-profile" title={t("profile.title")} description={t("profile.description")}>
         <ProfileForm
@@ -48,9 +53,19 @@ export default async function SettingsPage() {
         <PreferencesForm />
       </SettingsSection>
 
+      <SettingsSection id="settings-signout" title={t("signOut.title")} description={t("signOut.description")}>
+        <form action={logoutAction}>
+          <Button type="submit" variant="outline" className="rounded-full">
+            <LogOut aria-hidden className="size-4" />
+            {t("signOut.button")}
+          </Button>
+        </form>
+      </SettingsSection>
+
       <SettingsSection id="settings-account" title={t("account.title")} description={t("account.description")} tone="danger">
         <DeactivateAccount />
       </SettingsSection>
     </div>
+    </>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
@@ -18,7 +17,10 @@ export function LoginForm({ next }: { next?: string }) {
   const tc = useTranslations("common");
   const [formError, setFormError] = useState<FormErrorCode | null>(null);
   const [pending, startTransition] = useTransition();
-  const form = useForm<LoginInput>({ resolver: zodResolver(loginSchema), defaultValues: { email: "", password: "", next } });
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "", remember: true, next },
+  });
   const { errors } = form.formState;
 
   const onSubmit = form.handleSubmit((values) => {
@@ -37,6 +39,7 @@ export function LoginForm({ next }: { next?: string }) {
     <form onSubmit={onSubmit} noValidate className="space-y-4">
       <FormError code={formError} />
       <TextField
+        appearance="pill"
         label={t("email")}
         type="email"
         autoComplete="email"
@@ -45,26 +48,22 @@ export function LoginForm({ next }: { next?: string }) {
         {...form.register("email")}
       />
       <TextField
+        appearance="pill"
         label={t("password")}
         type="password"
         autoComplete="current-password"
         error={errors.password?.message}
         {...form.register("password")}
       />
-      <div className="text-right">
-        <Link href="/forgot-password" className="inline-flex min-h-11 items-center text-sm text-wl-primary underline-offset-4 hover:underline">
-          {t("forgot")}
-        </Link>
+      <div className="flex justify-center pt-1">
+        <Button type="submit" size="lg" className="h-12 w-48 rounded-full text-base tracking-[0.15em] uppercase" disabled={pending}>
+          {pending ? tc("loading") : t("submit")}
+        </Button>
       </div>
-      <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? tc("loading") : t("submit")}
-      </Button>
-      <p className="text-center text-sm text-wl-ink-soft">
-        {t("noAccount")}{" "}
-        <Link href="/register" className="text-wl-primary underline-offset-4 hover:underline">
-          {t("register")}
-        </Link>
-      </p>
+      <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 text-sm text-wl-ink-soft">
+        <input type="checkbox" className="size-4 accent-wl-ink" {...form.register("remember")} />
+        {t("remember")}
+      </label>
     </form>
   );
 }

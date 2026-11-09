@@ -13,8 +13,9 @@ WasteLoop connects **providers** (households, restaurants, grocery stores, cater
 | 1 | Scaffold, Tailwind, shadcn/ui, next-intl (bn + en), Supabase clients, proxy, env template | ✅ Done |
 | 2 | Migrations, enums, tables, PostGIS, indexes, `listings_public`, RLS, `is_admin()`, `get_listing_detail()`, seed | ✅ Done |
 | 3 | Auth, roles, profiles, deactivation (FR-1.x) | ✅ Done |
+| 3½ | UI redesign: black-and-white theme, logo, new login/register, app shell with bottom tabs, marketplace with categories, listing detail | ✅ Done |
 | 4 | Listings wizard, photos, lifecycle, `ml/` seam (FR-3.x) | ⏳ |
-| 5 | Browse, filters, distance, map, saved interests (FR-4.1–4.4) | ⏳ |
+| 5 | Distance sorting, map, saved interests (FR-4.2–4.4); category browsing is already live | ⏳ |
 | 6 | Requests, messaging, pickups, state machine (FR-5.x, FR-6.1–6.3) | ⏳ |
 | 7 | Payments (mock), receipts (FR-7.1–7.3) | ⏳ |
 | 8 | Ratings, reviews, reporting (FR-8.x) | ⏳ |
@@ -127,17 +128,30 @@ tests/            unit tests; db/ runs migrations + RLS tests in PGlite
 
 ## Visual design
 
-The palette in [`src/app/globals.css`](src/app/globals.css) is the only set of colours the app uses. The default Tailwind palette is removed (`--color-*: initial`), so classes like `bg-green-500` produce no CSS. Each colour has one job:
+The palette lives in [`src/app/globals.css`](src/app/globals.css) and is the only set of colours the app uses. The default Tailwind palette is removed (`--color-*: initial`), so classes like `bg-green-500` produce no CSS.
+
+**Theme: black and white, mostly white** (the product owner's design direction, replacing the original navy/paper palette):
 
 | Colour | Job |
 |---|---|
-| Loop green | Brand, primary actions, verified badges, success, impact figures |
-| Deep navy | Header, nav, footer, admin shell, body text, dark-mode base |
-| Burgundy | Money only: prices, for-sale badges, payment flow, receipts |
-| Warm grey | Borders, secondary and muted text, disabled and expired items |
-| Paper | Page background (white is reserved for raised cards) |
-| Harvest amber | Reserved and pending states only |
-| Stream colours | Listing type chips and map pins only, via [`WASTE_STREAM_STYLES`](src/lib/design/streams.ts) |
+| White / near-white | Page background (`wl-paper`), cards and header (`wl-surface`, `wl-chrome`) |
+| Black | Text, primary buttons, active navigation, the auth-card header band and page banners (`wl-primary`, `wl-inverse`) |
+| Neutral greys | Borders, secondary text, disabled and expired items |
+| Logo green `#1F6B47` | The logo, success, verified badges, "free / donation" badges, impact figures |
+| Logo burgundy `#7B2D3B` | The logo and money only: prices, payments, receipts |
+| Amber | Reserved and pending states only |
+| Four stream colours | Category chips, category-tab icons and map pins only, via [`WASTE_STREAM_STYLES`](src/lib/design/streams.ts) |
+
+Dark mode is the inverse: black page, white text and buttons.
+
+**Logo:** [`src/components/layout/logo.tsx`](src/components/layout/logo.tsx) redraws the supplied mark (a ring with a green half and a burgundy half) as SVG; [`src/app/icon.svg`](src/app/icon.svg) is the browser-tab icon.
+
+**Layouts:**
+
+- **Public** (landing): white header, black footer.
+- **Auth** (login, register, password reset): full-page, truck illustration plus the "member login" card with a black header band, pill inputs and a pill button.
+- **Signed in** (the app): a white top bar with the logo, notifications bell and settings; a left sidebar on desktop and a bottom tab bar on phones, modelled on the supplied mobile design; black wave banners at the top of each page.
+- **Marketplace and listing pages:** readable by everyone. Signed-in users see them inside the app shell, visitors with the public header.
 
 Fonts: Inter for Latin script and Hind Siliguri for Bangla (applied on `:lang(bn)`), weights 400 and 500 only.
 
@@ -155,6 +169,9 @@ Every FR ID from the SRS maps to the file(s) that implement it. This table grows
 | FR-1.2 | Multiple roles per user, chosen at sign-up and editable; admin never self-granted | [`003_profiles_roles.sql`](supabase/migrations/003_profiles_roles.sql) (`user_roles`, `handle_new_user`), [`src/components/account/role-picker.tsx`](src/components/account/role-picker.tsx), [`src/lib/actions/account.ts`](src/lib/actions/account.ts) (`updateRolesAction`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
 | FR-1.x | Profile editing; language saved to the profile and restored at login | [`src/app/(app)/settings/page.tsx`](src/app/(app)/settings/page.tsx), [`src/components/settings/`](src/components/settings/), [`src/app/actions/locale.ts`](src/app/actions/locale.ts), [`src/lib/validation/profile.ts`](src/lib/validation/profile.ts) |
 | FR-1.x | Deactivation and data-removal request | [`010_account.sql`](supabase/migrations/010_account.sql), [`src/lib/actions/account.ts`](src/lib/actions/account.ts) (`deactivateAccountAction`), [`src/components/settings/deactivate-account.tsx`](src/components/settings/deactivate-account.tsx), [`tests/db/account.test.ts`](tests/db/account.test.ts) |
+| FR-4.1 | Marketplace: browse public listings by waste category and offer type, 20 per page, filtered in SQL | [`src/app/(market)/marketplace/page.tsx`](src/app/(market)/marketplace/page.tsx), [`src/lib/listings/queries.ts`](src/lib/listings/queries.ts), [`src/components/listings/`](src/components/listings/) |
+| §4.4 (UI) | Listing detail: approximate area for everyone, exact address only for owner / accepted taker / admin; food-safety notice on edible food | [`src/app/(market)/listings/[id]/page.tsx`](src/app/(market)/listings/[id]/page.tsx) |
+| — | Landing live counters | [`src/app/(public)/page.tsx`](src/app/(public)/page.tsx) (`public_impact_stats()`) |
 | — | Role-aware dashboard | [`src/app/(app)/dashboard/page.tsx`](src/app/(app)/dashboard/page.tsx) |
 | FR-5.3 | Messaging opens only after acceptance | [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`is_accepted_request_party`), [`008_rls.sql`](supabase/migrations/008_rls.sql), [`tests/db/privacy.test.ts`](tests/db/privacy.test.ts) |
 | FR-6.1 | Pickup inside the availability window | [`005_exchange.sql`](supabase/migrations/005_exchange.sql) (`pickups_validate_window`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
@@ -215,6 +232,14 @@ Choices made where the brief was ambiguous or the toolchain had changed.
 29. **Phone numbers** must be Bangladeshi mobiles (`01[3-9]XXXXXXXX`, with or without `+880`), and are stored normalised as `+8801XXXXXXXXX`.
 30. **Theme preference is per browser.** The light / dark / system choice is stored by `next-themes` in the browser. Language follows the user across devices via `profiles.locale`, because it also controls the language of their notifications.
 31. **Profile coordinates come with the map.** The settings page edits the text area name ("Mirpur, Dhaka"). Picking the coarse point on a map (`profiles.approx_point`) arrives with the Leaflet map in milestone 5.
+32. **Theme changed to black and white.** The product owner replaced the original navy/paper palette with a mostly-white, black-button theme and supplied the logo. The rules from the original spec still apply: tokens only, stream colours for chips only, one primary action per view, never colour alone. Decision 5 (dark-mode greys) is superseded by the new dark palette.
+33. **"Remember me" is real.** Unticked, Supabase's auth cookies are written without `Max-Age` / `Expires`, so they end when the browser closes. The choice is kept in a small `wl_remember` cookie that the proxy and server client both read ([`src/lib/supabase/cookie-policy.ts`](src/lib/supabase/cookie-policy.ts)).
+34. **`/marketplace` is the browse page.** The original spec calls it `/browse`; that route now redirects to `/marketplace`, keeping any filters.
+35. **Navigation never leads to a missing page.** [`src/lib/nav.ts`](src/lib/nav.ts) lists every app section with a `ready` flag. Sections arriving in later milestones (post a listing, requests, impact) stay hidden until their page exists. Notifications that link into such a section are shown without a link.
+36. **Notifications inbox ahead of milestone 9.** The bell in the design needs a destination, so a read-only inbox exists now. Live updates, mark-as-read and preferences arrive in milestone 9.
+37. **Requesting a listing arrives in milestone 6.** The listing page shows "Log in to request" to visitors, which works. Signed-in users see a disabled "Request this" button, which becomes live with the request flow.
+38. **Illustration licence.** The garbage-truck illustration matches Storyset's free style, which requires attribution, so the login page credits it. Replace it, or keep the credit, before publishing.
+39. **Marketplace sort.** Until distance sorting arrives in milestone 5, listings show available before reserved, newest first. This is also the documented fallback for FR-4.5 recommendations.
 
 ## Payments
 

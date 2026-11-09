@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { publicEnv } from "@/lib/env";
 import { AFTER_LOGIN_PATH, AUTH_PATHS, LOGIN_PATH, isProtectedPath } from "@/lib/routes";
+import { REMEMBER_COOKIE, isSessionOnly, withSessionPolicy } from "./cookie-policy";
 import type { Database } from "./database.types";
 
 /**
@@ -15,6 +16,7 @@ import type { Database } from "./database.types";
  */
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
   let response = NextResponse.next({ request });
+  const sessionOnly = isSessionOnly(request.cookies.get(REMEMBER_COOKIE)?.value);
 
   const supabase = createServerClient<Database>(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey, {
     cookies: {
@@ -24,7 +26,9 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
       setAll(cookiesToSet, headers) {
         for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
         response = NextResponse.next({ request });
-        for (const { name, value, options } of cookiesToSet) response.cookies.set(name, value, options);
+        for (const { name, value, options } of cookiesToSet) {
+          response.cookies.set(name, value, withSessionPolicy(value, options, sessionOnly));
+        }
         for (const [key, value] of Object.entries(headers ?? {})) response.headers.set(key, value);
       },
     },

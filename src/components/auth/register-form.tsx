@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MailCheck } from "lucide-react";
@@ -56,8 +55,8 @@ export function RegisterForm() {
   if (sentTo) {
     return (
       <div role="status" className="space-y-3 text-center">
-        <MailCheck aria-hidden className="mx-auto size-10 text-wl-primary" />
-        <h2 className="text-xl font-medium">{t("checkEmailTitle")}</h2>
+        <MailCheck aria-hidden className="mx-auto size-10 text-wl-ink" />
+        <h3 className="text-xl font-medium">{t("checkEmailTitle")}</h3>
         <p className="text-wl-ink-soft">{t("checkEmailBody", { email: sentTo })}</p>
       </div>
     );
@@ -66,6 +65,50 @@ export function RegisterForm() {
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
       <FormError code={formError} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField appearance="pill" label={t("displayName")} autoComplete="name" error={errors.displayName?.message} {...form.register("displayName")} />
+        <TextField
+          appearance="pill"
+          label={t("orgNameShort")}
+          autoComplete="organization"
+          error={errors.orgName?.message}
+          {...form.register("orgName")}
+        />
+        <TextField
+          appearance="pill"
+          label={t("email")}
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          error={errors.email?.message}
+          {...form.register("email")}
+        />
+        <TextField
+          appearance="pill"
+          label={t("phoneShort")}
+          type="tel"
+          autoComplete="tel"
+          inputMode="tel"
+          error={errors.phone?.message}
+          {...form.register("phone")}
+        />
+        <TextField
+          appearance="pill"
+          label={t("password")}
+          type="password"
+          autoComplete="new-password"
+          error={errors.password?.message}
+          {...form.register("password")}
+        />
+        <TextField
+          appearance="pill"
+          label={t("confirmPassword")}
+          type="password"
+          autoComplete="new-password"
+          error={errors.confirmPassword?.message}
+          {...form.register("confirmPassword")}
+        />
+      </div>
       <Controller
         control={form.control}
         name="roles"
@@ -79,57 +122,11 @@ export function RegisterForm() {
           />
         )}
       />
-      <TextField label={t("displayName")} autoComplete="name" error={errors.displayName?.message} {...form.register("displayName")} />
-      <TextField
-        label={t("orgName")}
-        hint={t("orgNameHint")}
-        optional
-        autoComplete="organization"
-        error={errors.orgName?.message}
-        {...form.register("orgName")}
-      />
-      <TextField
-        label={t("email")}
-        type="email"
-        autoComplete="email"
-        inputMode="email"
-        error={errors.email?.message}
-        {...form.register("email")}
-      />
-      <TextField
-        label={t("phone")}
-        hint={t("phoneHint")}
-        optional
-        type="tel"
-        autoComplete="tel"
-        inputMode="tel"
-        error={errors.phone?.message}
-        {...form.register("phone")}
-      />
-      <TextField
-        label={t("password")}
-        hint={t("passwordHint")}
-        type="password"
-        autoComplete="new-password"
-        error={errors.password?.message}
-        {...form.register("password")}
-      />
-      <TextField
-        label={t("confirmPassword")}
-        type="password"
-        autoComplete="new-password"
-        error={errors.confirmPassword?.message}
-        {...form.register("confirmPassword")}
-      />
-      <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? tc("loading") : t("submit")}
-      </Button>
-      <p className="text-center text-sm text-wl-ink-soft">
-        {t("haveAccount")}{" "}
-        <Link href="/login" className="text-wl-primary underline-offset-4 hover:underline">
-          {t("signIn")}
-        </Link>
-      </p>
+      <div className="flex justify-center pt-1">
+        <Button type="submit" size="lg" className="h-12 min-w-56 rounded-full text-base tracking-[0.15em] uppercase" disabled={pending}>
+          {pending ? tc("loading") : t("submit")}
+        </Button>
+      </div>
     </form>
   );
 }

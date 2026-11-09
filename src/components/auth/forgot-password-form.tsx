@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MailCheck } from "lucide-react";
@@ -38,20 +37,19 @@ export function ForgotPasswordForm() {
   if (sentTo) {
     return (
       <div role="status" className="space-y-3 text-center">
-        <MailCheck aria-hidden className="mx-auto size-10 text-wl-primary" />
-        <h2 className="text-xl font-medium">{t("sentTitle")}</h2>
+        <MailCheck aria-hidden className="mx-auto size-10 text-wl-ink" />
+        <h3 className="text-xl font-medium">{t("sentTitle")}</h3>
         <p className="text-wl-ink-soft">{t("sentBody", { email: sentTo })}</p>
-        <Link href="/login" className="inline-flex min-h-11 items-center text-wl-primary underline-offset-4 hover:underline">
-          {t("backToLogin")}
-        </Link>
       </div>
     );
   }
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
+      <p className="text-center text-sm text-wl-ink-soft">{t("subtitle")}</p>
       <FormError code={formError} />
       <TextField
+        appearance="pill"
         label={t("email")}
         type="email"
         autoComplete="email"
@@ -59,14 +57,11 @@ export function ForgotPasswordForm() {
         error={form.formState.errors.email?.message}
         {...form.register("email")}
       />
-      <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? tc("loading") : t("submit")}
-      </Button>
-      <p className="text-center text-sm">
-        <Link href="/login" className="inline-flex min-h-11 items-center text-wl-primary underline-offset-4 hover:underline">
-          {t("backToLogin")}
-        </Link>
-      </p>
+      <div className="flex justify-center pt-1">
+        <Button type="submit" size="lg" className="h-12 min-w-48 rounded-full text-base tracking-[0.1em] uppercase" disabled={pending}>
+          {pending ? tc("loading") : t("submit")}
+        </Button>
+      </div>
     </form>
   );
 }

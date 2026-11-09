@@ -22,6 +22,7 @@ export type RegisterInput = z.input<typeof registerSchema>;
 export const loginSchema = z.object({
   email: emailField,
   password: z.string(msg("required")).min(1, msg("required")),
+  remember: z.boolean().optional(),
   next: z.string().optional(),
 });
 export type LoginInput = z.input<typeof loginSchema>;

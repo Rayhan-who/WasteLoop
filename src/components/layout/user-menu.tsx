@@ -21,7 +21,7 @@ export function UserMenu({ name, isAdmin }: { name: string; isAdmin: boolean }) 
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={t("label", { name })}
-        className="inline-flex min-h-11 items-center gap-2 rounded-md border border-wl-chrome-soft px-3 text-sm text-wl-on-chrome hover:bg-wl-chrome-soft"
+        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-wl-border px-3 text-sm text-wl-on-chrome hover:bg-wl-chrome-soft"
       >
         <UserRound aria-hidden className="size-4" />
         <span className="max-w-40 truncate">{name}</span>

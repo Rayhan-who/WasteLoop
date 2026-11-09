@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { AuthHeading } from "@/components/auth/auth-heading";
+import { AuthCard } from "@/components/auth/auth-card";
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/supabase/server";
@@ -20,19 +20,20 @@ export default async function ResetPasswordPage() {
 
   if (!user) {
     return (
-      <>
-        <AuthHeading title={t("expiredTitle")} subtitle={t("expiredBody")} />
-        <Button asChild size="lg" className="w-full">
-          <Link href="/forgot-password">{t("requestNew")}</Link>
-        </Button>
-      </>
+      <AuthCard title={t("expiredTitle")}>
+        <p className="text-center text-wl-ink-soft">{t("expiredBody")}</p>
+        <div className="mt-6 flex justify-center">
+          <Button asChild size="lg" className="h-12 rounded-full px-8">
+            <Link href="/forgot-password">{t("requestNew")}</Link>
+          </Button>
+        </div>
+      </AuthCard>
     );
   }
 
   return (
-    <>
-      <AuthHeading title={t("title")} subtitle={t("subtitle")} />
+    <AuthCard title={t("title")} subtitle={t("subtitle")}>
       <ResetPasswordForm />
-    </>
+    </AuthCard>
   );
 }

@@ -1,41 +1,58 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Leaf, PackageOpen, Send } from "lucide-react";
+import { ArrowRight, Inbox, Leaf, PackageOpen, Send, type LucideIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
+import truck from "@/assets/illustrations/garbage-truck.jpg";
+import { PageBanner } from "@/components/app-shell/page-banner";
+import { EcoQuiz } from "@/components/dashboard/eco-quiz";
 import { Notice } from "@/components/forms/form-alert";
+import { ListingCard } from "@/components/listings/listing-card";
 import { Button } from "@/components/ui/button";
 import { TAKER_ROLES } from "@/lib/domain";
+import { getLatestListings, listingPhotoUrl } from "@/lib/listings/queries";
 import { getCurrentProfile } from "@/lib/profile";
 import { LOGIN_PATH } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getTranslations("userMenu"))("dashboard") };
+  return { title: (await getTranslations("nav"))("home") };
 }
 
-/** Role-aware home. Counts are single filtered SQL counts under RLS, never full-table scans in JS (§4.1). */
+function StatCard({ icon: Icon, label, value, tone }: { icon: LucideIcon; label: string; value: string; tone?: "attention" | "impact" }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-wl-border bg-wl-surface p-4">
+      <span
+        aria-hidden
+        className={cn(
+          "flex size-10 items-center justify-center rounded-full",
+          tone === "impact" ? "bg-wl-success-tint text-wl-success" : tone === "attention" ? "bg-wl-pending-tint text-wl-pending-text" : "bg-wl-chrome-soft text-wl-ink",
+        )}
+      >
+        <Icon className="size-5" />
+      </span>
+      <div>
+        <p className={cn("text-2xl font-medium", tone === "impact" && "text-wl-success")}>{value}</p>
+        <p className="text-sm text-wl-ink-soft">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+/** Role-aware home. Counts are single filtered SQL counts under RLS (§4.1). */
 export default async function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
   const profile = await getCurrentProfile();
   if (!profile) redirect(LOGIN_PATH);
 
-  const [t, format, params, supabase] = await Promise.all([
-    getTranslations("dashboard"),
-    getFormatter(),
-    searchParams,
-    createClient(),
-  ]);
-
+  const [t, format, params, supabase] = await Promise.all([getTranslations("dashboard"), getFormatter(), searchParams, createClient()]);
   const isProvider = profile.roles.includes("provider");
   const isTaker = profile.roles.some((r) => (TAKER_ROLES as readonly string[]).includes(r));
 
-  const [activeListings, pendingIncoming, activeRequests, impact] = await Promise.all([
+  const [activeListings, pendingIncoming, activeRequests, impact, latest] = await Promise.all([
     isProvider
-      ? supabase
-          .from("listings")
-          .select("id", { count: "exact", head: true })
-          .eq("provider_id", profile.id)
-          .in("status", ["available", "reserved"])
+      ? supabase.from("listings").select("id", { count: "exact", head: true }).eq("provider_id", profile.id).in("status", ["available", "reserved"])
       : null,
     isProvider
       ? supabase
@@ -45,108 +62,101 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
           .eq("status", "pending")
       : null,
     isTaker
-      ? supabase
-          .from("requests")
-          .select("id", { count: "exact", head: true })
-          .eq("taker_id", profile.id)
-          .in("status", ["pending", "accepted"])
+      ? supabase.from("requests").select("id", { count: "exact", head: true }).eq("taker_id", profile.id).in("status", ["pending", "accepted"])
       : null,
     supabase.from("impact_records").select("quantity_kg").eq("user_id", profile.id),
+    getLatestListings(3),
   ]);
-
+  const photos = await Promise.all(latest.map((l) => listingPhotoUrl(l.cover_photo_path)));
   const kg = (impact.data ?? []).reduce((sum, r) => sum + Number(r.quantity_kg), 0);
   const name = profile.org_name ?? profile.display_name;
+  const now = new Date();
+  const dayIndex = Math.floor(now.getTime() / 86_400_000);
+  const pending = pendingIncoming?.count ?? 0;
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 md:py-12">
-      <header className="space-y-1">
-        <h1 className="text-3xl font-medium">{t("title", { name })}</h1>
-        <p className="text-wl-ink-soft">{t("subtitle")}</p>
-      </header>
+    <>
+      <PageBanner eyebrow={t("hello")} title={name} subtitle={profile.general_location ?? undefined}>
+        <Button asChild size="lg" className="h-12 rounded-full bg-wl-on-inverse px-6 text-wl-inverse hover:bg-wl-on-inverse/90">
+          <Link href="/marketplace">
+            {t("openMarketplace")}
+            <ArrowRight aria-hidden className="size-4" />
+          </Link>
+        </Button>
+      </PageBanner>
 
-      <div className="space-y-3">
-        {params.reactivated === "1" ? <Notice tone="success">{t("reactivated")}</Notice> : null}
-        {profile.roles.length === 0 ? (
-          <Notice>
-            {t("noRoles")}{" "}
-            <Link href="/settings" className="text-wl-primary underline underline-offset-4">
-              {t("goToSettings")}
-            </Link>
-          </Notice>
-        ) : !profile.general_location ? (
-          <Notice>
-            {t("completeProfile")}{" "}
-            <Link href="/settings" className="text-wl-primary underline underline-offset-4">
-              {t("goToSettings")}
-            </Link>
-          </Notice>
-        ) : null}
-      </div>
+      <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 md:px-8">
+        <div className="space-y-3 empty:hidden">
+          {params.reactivated === "1" ? <Notice tone="success">{t("reactivated")}</Notice> : null}
+          {profile.roles.length === 0 ? (
+            <Notice>
+              {t("noRoles")}{" "}
+              <Link href="/settings" className="underline underline-offset-4">
+                {t("goToSettings")}
+              </Link>
+            </Notice>
+          ) : !profile.general_location ? (
+            <Notice>
+              {t("completeProfile")}{" "}
+              <Link href="/settings" className="underline underline-offset-4">
+                {t("goToSettings")}
+              </Link>
+            </Notice>
+          ) : null}
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {isProvider ? (
-          <section aria-labelledby="dash-provider" className="flex flex-col gap-4 rounded-xl border border-wl-border bg-wl-surface p-5">
-            <h2 id="dash-provider" className="flex items-center gap-2 text-lg font-medium">
-              <PackageOpen aria-hidden className="size-5 text-wl-ink-soft" />
-              {t("provider.title")}
-            </h2>
-            <ul className="space-y-1">
-              <li>{t("provider.activeListings", { count: activeListings?.count ?? 0 })}</li>
-              <li className={(pendingIncoming?.count ?? 0) > 0 ? "text-wl-pending-text" : undefined}>
-                {t("provider.pendingIncoming", { count: pendingIncoming?.count ?? 0 })}
-              </li>
-            </ul>
-            {(activeListings?.count ?? 0) === 0 ? <p className="text-sm text-wl-ink-soft">{t("provider.emptyHint")}</p> : null}
-            <div className="mt-auto flex flex-wrap gap-2">
-              <Button asChild>
-                <Link href="/listings/new">{t("provider.postListing")}</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/my-listings">{t("provider.myListings")}</Link>
-              </Button>
-            </div>
-          </section>
-        ) : null}
-
-        {isTaker ? (
-          <section aria-labelledby="dash-taker" className="flex flex-col gap-4 rounded-xl border border-wl-border bg-wl-surface p-5">
-            <h2 id="dash-taker" className="flex items-center gap-2 text-lg font-medium">
-              <Send aria-hidden className="size-5 text-wl-ink-soft" />
-              {t("taker.title")}
-            </h2>
-            <p>{t("taker.activeRequests", { count: activeRequests?.count ?? 0 })}</p>
-            {(activeRequests?.count ?? 0) === 0 ? <p className="text-sm text-wl-ink-soft">{t("taker.emptyHint")}</p> : null}
-            <div className="mt-auto flex flex-wrap gap-2">
-              {/* One primary action per view: providers' primary is "Post surplus". */}
-              <Button asChild variant={isProvider ? "outline" : "default"}>
-                <Link href="/browse">{t("taker.browse")}</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/requests">{t("taker.myRequests")}</Link>
-              </Button>
-            </div>
-          </section>
-        ) : null}
-
-        <section aria-labelledby="dash-impact" className="flex flex-col gap-3 rounded-xl border border-wl-border bg-wl-surface p-5 md:col-span-2">
-          <h2 id="dash-impact" className="flex items-center gap-2 text-lg font-medium">
-            <Leaf aria-hidden className="size-5 text-wl-primary" />
-            {t("impact.title")}
-          </h2>
-          {kg > 0 ? (
-            <p className="text-2xl font-medium text-wl-primary">
-              {t("impact.kgDiverted", { kg: format.number(kg, { maximumFractionDigits: 1 }) })}
-            </p>
-          ) : (
-            <p className="text-wl-ink-soft">{t("impact.none")}</p>
-          )}
-          <div>
-            <Button asChild variant="outline">
-              <Link href="/impact">{t("impact.view")}</Link>
-            </Button>
-          </div>
+        <section aria-label={t("statsLabel")} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {isProvider ? (
+            <>
+              <StatCard icon={PackageOpen} label={t("stats.liveListings")} value={format.number(activeListings?.count ?? 0)} />
+              <StatCard icon={Inbox} label={t("stats.waiting")} value={format.number(pending)} tone={pending > 0 ? "attention" : undefined} />
+            </>
+          ) : null}
+          {isTaker ? <StatCard icon={Send} label={t("stats.openRequests")} value={format.number(activeRequests?.count ?? 0)} /> : null}
+          <StatCard
+            icon={Leaf}
+            label={t("stats.kgDiverted")}
+            value={t("stats.kg", { kg: format.number(kg, { maximumFractionDigits: 1 }) })}
+            tone="impact"
+          />
         </section>
+
+        <section aria-labelledby="dash-new" className="space-y-3">
+          <div className="flex items-end justify-between gap-3">
+            <h2 id="dash-new" className="text-xl font-medium">
+              {t("newInMarketplace")}
+            </h2>
+            <Link href="/marketplace" className="inline-flex min-h-11 items-center gap-1 text-sm font-medium underline-offset-4 hover:underline">
+              {t("viewAll")}
+              <ArrowRight aria-hidden className="size-4" />
+            </Link>
+          </div>
+          {latest.length > 0 ? (
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {latest.map((listing, i) => (
+                <li key={listing.id}>
+                  <ListingCard listing={listing} photoUrl={photos[i]} now={now} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="rounded-2xl border border-dashed border-wl-grey-200 bg-wl-surface p-6 text-center text-wl-ink-soft">{t("nothingNew")}</p>
+          )}
+        </section>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <EcoQuiz dayIndex={dayIndex} />
+          <section aria-labelledby="dash-reminders" className="flex flex-col overflow-hidden rounded-2xl border border-wl-border bg-wl-surface">
+            <div className="p-5 md:p-6">
+              <h2 id="dash-reminders" className="text-lg font-medium">
+                {t("reminders.title")}
+              </h2>
+              <p className="mt-1 text-wl-ink-soft">{t("reminders.body")}</p>
+            </div>
+            <Image src={truck} alt={t("reminders.alt")} sizes="(min-width: 1024px) 40vw, 90vw" className="mt-auto h-auto w-full max-w-md self-center" />
+          </section>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

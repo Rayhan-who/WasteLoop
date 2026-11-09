@@ -29,7 +29,14 @@
     "howItWorks": "How it works",
     "dashboard": "Dashboard",
     "signIn": "Log in",
-    "register": "Create account"
+    "register": "Create account",
+    "home": "Home",
+    "marketplace": "Marketplace",
+    "requests": "Requests",
+    "impact": "Impact",
+    "notifications": "Alerts",
+    "settings": "Settings",
+    "notificationsCount": "{count, plural, =0 {Alerts} one {Alerts, # unread} other {Alerts, # unread}}"
   },
   "footer": {
     "tagline": "Keeping food and organic waste in the loop.",
@@ -41,8 +48,10 @@
       "eyebrow": "Food and organic waste exchange",
       "title": "Your surplus is someone else's resource.",
       "subtitle": "Restaurants, shops, caterers and households post what they have left over. Farmers, energy plants, recyclers and charities pick it up.",
-      "ctaBrowse": "Browse listings",
-      "ctaPost": "Post your surplus"
+      "ctaBrowse": "Explore the marketplace",
+      "ctaPost": "Post your surplus",
+      "ctaJoin": "Create a free account",
+      "illustrationAlt": "A collector running after a full garbage truck"
     },
     "streams": {
       "title": "Four streams, one place",
@@ -77,7 +86,17 @@
       "title": "What WasteLoop does, and what it doesn't",
       "body": "We connect people and help them coordinate. We do not collect, transport, buy, certify or process anything. The two parties arrange the handover themselves."
     },
-    "deactivatedNotice": "Your account has been deactivated. Log in again at any time to reactivate it."
+    "deactivatedNotice": "Your account has been deactivated. Log in again at any time to reactivate it.",
+    "stats": {
+      "label": "WasteLoop so far",
+      "kg": "Kilograms kept out of landfill",
+      "active": "Listings available now",
+      "completed": "Completed handovers"
+    },
+    "fresh": {
+      "title": "Fresh in the marketplace",
+      "viewAll": "See everything"
+    }
   },
   "streams": {
     "edible_food": "Edible food",
@@ -160,7 +179,9 @@
       "forgot": "Forgot your password?",
       "noAccount": "New to WasteLoop?",
       "register": "Create an account",
-      "linkExpired": "That link has expired or was already used. Please log in, or request a new link."
+      "linkExpired": "That link has expired or was already used. Please log in, or request a new link.",
+      "cardTitle": "Member login",
+      "remember": "Remember me"
     },
     "register": {
       "title": "Create your account",
@@ -180,7 +201,10 @@
       "haveAccount": "Already have an account?",
       "signIn": "Log in",
       "checkEmailTitle": "Check your inbox",
-      "checkEmailBody": "If {email} can be registered, we have sent it a confirmation link. Open it to finish creating your account."
+      "checkEmailBody": "If {email} can be registered, we have sent it a confirmation link. Open it to finish creating your account.",
+      "cardTitle": "Create account",
+      "orgNameShort": "Organisation (optional)",
+      "phoneShort": "Mobile (optional)"
     },
     "forgot": {
       "title": "Reset your password",
@@ -201,6 +225,12 @@
       "expiredTitle": "This reset link is no longer valid",
       "expiredBody": "Reset links work once and expire after an hour. Request a new one to continue.",
       "requestNew": "Request a new link"
+    },
+    "panel": {
+      "title": "Your surplus is someone else's resource.",
+      "body": "Food, compost, plastics and energy feedstock — matched with farmers, recyclers, energy plants and charities near you.",
+      "illustrationAlt": "A collector running after a full garbage truck",
+      "credit": "Illustration by <link>Storyset</link>"
     }
   },
   "userMenu": {
@@ -237,7 +267,54 @@
     },
     "noRoles": "You have no roles yet. Choose how you use WasteLoop in settings.",
     "completeProfile": "Add your area in settings so we can show listings near you first.",
-    "goToSettings": "Go to settings"
+    "goToSettings": "Go to settings",
+    "hello": "Hello,",
+    "openMarketplace": "Open marketplace",
+    "statsLabel": "Your numbers",
+    "stats": {
+      "liveListings": "Live listings",
+      "waiting": "Requests waiting for you",
+      "openRequests": "Your open requests",
+      "kgDiverted": "Kept out of landfill",
+      "kg": "{kg} kg"
+    },
+    "newInMarketplace": "New in the marketplace",
+    "viewAll": "View all",
+    "nothingNew": "No new listings right now. Check back soon.",
+    "reminders": {
+      "title": "Who doesn't like pickup reminders?",
+      "body": "Once a pickup is booked, we remind both of you a day before and two hours before, so nothing goes to waste.",
+      "alt": "A collector running after a full garbage truck"
+    },
+    "quiz": {
+      "eyebrow": "We wanted to know…",
+      "correct": "Correct!",
+      "tryAgain": "Not quite.",
+      "q1": {
+        "question": "What is the best thing to do with leftover cooked rice that is still good to eat?",
+        "a": "Give it to a community kitchen",
+        "b": "Throw it in the bin",
+        "c": "Burn it",
+        "d": "Pour it down the drain",
+        "why": "Edible food should feed people first. Compost and energy come after."
+      },
+      "q2": {
+        "question": "What can a biogas plant do with used cooking oil?",
+        "a": "Nothing — it has to go to landfill",
+        "b": "Use it only for painting",
+        "c": "Turn it into energy",
+        "d": "Mix it into drinking water",
+        "why": "Used oil and organic waste are good feedstock for biogas and biodiesel."
+      },
+      "q3": {
+        "question": "Which plastic do recyclers pay the most for?",
+        "a": "Plastic mixed with food scraps",
+        "b": "Clean, sorted PET bottles",
+        "c": "Wet plastic bags",
+        "d": "Burnt plastic",
+        "why": "Clean, sorted plastic fetches the best price. Rinse it and keep types separate."
+      }
+    }
   },
   "settings": {
     "title": "Settings",
@@ -282,6 +359,61 @@
       "requestRemovalHint": "An administrator will erase your account and personal data. This cannot be undone.",
       "reason": "Reason (optional)",
       "confirm": "Deactivate"
+    },
+    "signOut": {
+      "title": "Log out",
+      "description": "Sign out of WasteLoop on this device.",
+      "button": "Log out"
     }
+  },
+  "market": {
+    "eyebrow": "Food and organic waste exchange",
+    "title": "Marketplace",
+    "subtitle": "Surplus food and waste near you, sorted by category.",
+    "categories": "Waste categories",
+    "all": "All",
+    "offerFilter": "Offer type",
+    "anyOffer": "Any offer",
+    "resultCount": "{count, plural, =0 {No listings} one {{formatted} listing} other {{formatted} listings}}",
+    "emptyTitle": "Nothing here yet",
+    "emptyBody": "No listings match this category right now. Try another category, or check back later.",
+    "showAll": "Show all listings",
+    "pagination": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {pages}"
+  },
+  "quantity": {
+    "kg": "{value} kg",
+    "litre": "{value} litres",
+    "item": "{count, plural, one {{value} item} other {{value} items}}",
+    "bag": "{count, plural, one {{value} bag} other {{value} bags}}"
+  },
+  "listing": {
+    "verified": "Verified organisation",
+    "endsIn": "Ends {time}",
+    "back": "Back to marketplace",
+    "foodSafety": "WasteLoop does not certify food safety. Check the condition of the food in person before you accept it.",
+    "window": "Collect between {from} and {until}",
+    "approximateArea": "Approximate area. The exact address is shared once your request is accepted.",
+    "exactAddress": "Exact pickup address",
+    "exactReason": {
+      "owner": "You can see this because it is your listing.",
+      "admin": "Visible to you as an administrator.",
+      "accepted_taker": "Shared with you because your request was accepted."
+    },
+    "addressHidden": "The exact address stays private until the provider accepts your request.",
+    "yourListing": "This is your listing.",
+    "loginToRequest": "Log in to request",
+    "request": "Request this",
+    "requestSoon": "Sending requests opens in the next update.",
+    "postedBy": "Posted by",
+    "rating": "{avg} ({count, plural, one {# review} other {# reviews}})",
+    "noRatings": "No reviews yet"
+  },
+  "notifications": {
+    "title": "Alerts",
+    "empty": "No alerts yet. We'll let you know when something happens with your listings or requests.",
+    "unread": "Unread:"
   }
 }

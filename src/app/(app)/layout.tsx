@@ -1,5 +1,7 @@
-import { SiteShell } from "@/components/layout/site-shell";
-import { requireUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { AppShell } from "@/components/app-shell/app-shell";
+import { getCurrentProfile } from "@/lib/profile";
+import { LOGIN_PATH } from "@/lib/routes";
 
 /**
  * (app): signed-in users only. The proxy already redirects anonymous
@@ -7,6 +9,7 @@ import { requireUser } from "@/lib/auth";
  * proxy must never be the only authorisation layer.
  */
 export default async function AppLayout({ children }: LayoutProps<"/">) {
-  await requireUser();
-  return <SiteShell>{children}</SiteShell>;
+  const profile = await getCurrentProfile();
+  if (!profile) redirect(LOGIN_PATH);
+  return <AppShell profile={profile}>{children}</AppShell>;
 }

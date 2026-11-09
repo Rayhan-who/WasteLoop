@@ -19,8 +19,8 @@ export async function SiteHeader() {
   ]);
 
   const primaryNav: NavItem[] = [
-    { href: "/browse", label: t("browse") },
-    { href: "/listings/new", label: t("postListing") },
+    { href: "/marketplace", label: t("marketplace") },
+    { href: "/#how-heading", label: t("howItWorks") },
   ];
 
   const mobileAccountNav: NavItem[] = profile
@@ -35,7 +35,7 @@ export async function SiteHeader() {
       ];
 
   return (
-    <header className="sticky top-0 z-40 bg-wl-chrome text-wl-on-chrome">
+    <header className="sticky top-0 z-40 border-b border-wl-border bg-wl-chrome text-wl-on-chrome">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-wl-surface focus:px-4 focus:py-2 focus:text-wl-ink"
@@ -64,7 +64,7 @@ export async function SiteHeader() {
               </Link>
               <Link
                 href="/register"
-                className="inline-flex min-h-11 items-center rounded-md border border-wl-chrome-soft px-4 text-sm text-wl-on-chrome transition-colors hover:bg-wl-chrome-soft"
+                className="ml-1 inline-flex min-h-11 items-center rounded-full bg-wl-primary px-5 text-sm text-wl-on-primary transition-colors hover:bg-wl-primary-dark"
               >
                 {t("register")}
               </Link>

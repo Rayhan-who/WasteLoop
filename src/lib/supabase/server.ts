@@ -2,15 +2,20 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { publicEnv } from "@/lib/env";
+import { REMEMBER_COOKIE, isSessionOnly, withSessionPolicy } from "./cookie-policy";
 import type { Database } from "./database.types";
 
 /**
  * Supabase client for Server Components, Server Actions and Route Handlers.
  * Acts as the signed-in user (anon key + session cookie), so RLS applies.
  * Create one per request; never share across requests.
+ *
+ * `sessionOnly` overrides the remember-me cookie (used by the login action,
+ * which decides it before that cookie exists on the request).
  */
-export async function createClient() {
+export async function createClient(options: { sessionOnly?: boolean } = {}) {
   const cookieStore = await cookies();
+  const sessionOnly = options.sessionOnly ?? isSessionOnly(cookieStore.get(REMEMBER_COOKIE)?.value);
 
   return createServerClient<Database>(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey, {
     cookies: {
@@ -19,8 +24,8 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         try {
-          for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, options);
+          for (const { name, value, options: cookieOptions } of cookiesToSet) {
+            cookieStore.set(name, value, withSessionPolicy(value, cookieOptions, sessionOnly));
           }
         } catch {
           // Called from a Server Component, where cookies are read-only.

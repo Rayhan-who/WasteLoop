@@ -1,4 +1,5 @@
 import { describe, it } from "node:test";
+import { parse, TYPE, type MessageFormatElement } from "@formatjs/icu-messageformat-parser";
 import assert from "node:assert/strict";
 import bn from "@/messages/bn.json";
 import en from "@/messages/en.json";
@@ -17,6 +18,27 @@ function flatten(obj: Messages, prefix = ""): Map<string, string> {
     else for (const [k, v] of flatten(value, path)) out.set(k, v);
   }
   return out;
+}
+
+/**
+ * Argument and rich-text tag names used by an ICU message, found with a real
+ * parser: plural/select branch text is not mistaken for an argument, and
+ * languages may legitimately have different plural branches.
+ */
+function icuNames(message: string): string[] {
+  const names = new Set<string>();
+  const walk = (elements: MessageFormatElement[]) => {
+    for (const el of elements) {
+      if (el.type === TYPE.literal || el.type === TYPE.pound) continue;
+      names.add(el.type === TYPE.tag ? `<${el.value}>` : el.value);
+      if (el.type === TYPE.plural || el.type === TYPE.select) {
+        for (const option of Object.values(el.options)) walk(option.value);
+      }
+      if (el.type === TYPE.tag) walk(el.children);
+    }
+  };
+  walk(parse(message));
+  return [...names].sort();
 }
 
 const enFlat = flatten(en as Messages);
@@ -44,14 +66,23 @@ describe("message catalogues", () => {
     assert.deepEqual(copied, []);
   });
 
-  it("uses the same ICU placeholders in both languages", () => {
-    // ICU argument names only: "{name}" or "{count, plural, ...}". Plural branch text
-    // like "{No listings}" is not an argument, and languages may have different branches.
-    const placeholders = (s: string) => [...new Set([...s.matchAll(/\{\s*(\w+)\s*[,}]/g)].map((m) => m[1]))].sort();
+  it("uses the same ICU arguments and tags in both languages", () => {
     const mismatched = [...enFlat]
-      .filter(([k, v]) => JSON.stringify(placeholders(v)) !== JSON.stringify(placeholders(bnFlat.get(k) ?? "")))
+      .filter(([k, v]) => JSON.stringify(icuNames(v)) !== JSON.stringify(icuNames(bnFlat.get(k) ?? "")))
       .map(([k]) => k);
     assert.deepEqual(mismatched, []);
+  });
+
+  it("every message is valid ICU syntax", () => {
+    const invalid = [...enFlat, ...bnFlat].filter(([, v]) => {
+      try {
+        parse(v);
+        return false;
+      } catch {
+        return true;
+      }
+    });
+    assert.deepEqual(invalid.map(([k]) => k), []);
   });
 
   it("labels every enum value the UI renders", () => {

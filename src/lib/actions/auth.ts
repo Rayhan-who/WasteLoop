@@ -1,6 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { resolveLocale } from "@/i18n/config";
@@ -9,6 +9,7 @@ import { mapAuthError } from "@/lib/auth-errors";
 import { publicEnv } from "@/lib/env";
 import { AFTER_LOGIN_PATH, safeNextPath } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/server";
+import { REMEMBER_COOKIE, REMEMBER_COOKIE_MAX_AGE } from "@/lib/supabase/cookie-policy";
 import { fieldErrors } from "@/lib/validation/common";
 import {
   forgotPasswordSchema,
@@ -83,7 +84,16 @@ export async function loginAction(input: LoginInput): Promise<ActionResult> {
   const parsed = loginSchema.safeParse(input);
   if (!parsed.success) return fail("validation", fieldErrors(parsed.error));
 
-  const supabase = await createClient();
+  // "Remember me": unticked → auth cookies become session cookies.
+  const remember = parsed.data.remember ?? true;
+  (await cookies()).set(REMEMBER_COOKIE, remember ? "1" : "0", {
+    path: "/",
+    maxAge: REMEMBER_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    httpOnly: true,
+  });
+
+  const supabase = await createClient({ sessionOnly: !remember });
   const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,

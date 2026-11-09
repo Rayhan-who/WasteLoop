@@ -37,6 +37,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "0.5.11",
     "@electric-sql/pglite-postgis": "0.2.11",
+    "@formatjs/icu-messageformat-parser": "3.5.18",
     "@tailwindcss/turbopack": "^4",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^22.20.5",

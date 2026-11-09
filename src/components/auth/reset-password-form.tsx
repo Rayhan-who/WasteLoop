@@ -45,6 +45,7 @@ export function ResetPasswordForm() {
     <form onSubmit={onSubmit} noValidate className="space-y-4">
       <FormError code={formError} />
       <TextField
+        appearance="pill"
         label={t("password")}
         type="password"
         autoComplete="new-password"
@@ -52,15 +53,18 @@ export function ResetPasswordForm() {
         {...form.register("password")}
       />
       <TextField
+        appearance="pill"
         label={t("confirmPassword")}
         type="password"
         autoComplete="new-password"
         error={errors.confirmPassword?.message}
         {...form.register("confirmPassword")}
       />
-      <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? tc("saving") : t("submit")}
-      </Button>
+      <div className="flex justify-center pt-1">
+        <Button type="submit" size="lg" className="h-12 min-w-48 rounded-full text-base" disabled={pending}>
+          {pending ? tc("saving") : t("submit")}
+        </Button>
+      </div>
     </form>
   );
 }
