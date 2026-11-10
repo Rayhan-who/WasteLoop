@@ -1036,6 +1036,16 @@ export type Database = {
         }
         Returns: number
       }
+      price_reference: {
+        Args: {
+          p_waste_type: Database["public"]["Enums"]["waste_type"]
+          p_unit: Database["public"]["Enums"]["quantity_unit"]
+        }
+        Returns: {
+          median_per_unit: number | null
+          samples: number | null
+        }[]
+      }
       public_impact_stats: {
         Args: Record<PropertyKey, never>
         Returns: {

@@ -16,6 +16,6 @@ export const serverEnv = {
     return process.env.NOTIFICATION_DISPATCHER ?? "console";
   },
   get nominatimUserAgent(): string {
-    return process.env.NOMINATIM_USER_AGENT ?? "WasteLoop/0.1";
+    return process.env.NOMINATIM_USER_AGENT ?? "WasteLoop/0.1 (+https://github.com/Rayhan-who/WasteLoop)";
   },
 };

@@ -1,4 +1,4 @@
-import { Bell, House, LayoutGrid, Leaf, PackagePlus, Send, Settings, type LucideIcon } from "lucide-react";
+import { Bell, House, LayoutGrid, Leaf, List, PackagePlus, Send, Settings, type LucideIcon } from "lucide-react";
 import type { UserRole } from "@/lib/domain";
 
 /**
@@ -6,12 +6,12 @@ import type { UserRole } from "@/lib/domain";
  *
  * `ready` hides an entry until its page exists, so navigation never leads to
  * "page not found". Each later milestone flips its entry on:
- *   new listing → milestone 4, requests → 6, impact → 10.
+ *   requests → milestone 6, impact → 10.
  */
 export type AppNavItem = {
   href: string;
   /** Key under the `nav` message namespace. */
-  label: "home" | "marketplace" | "postListing" | "requests" | "impact" | "notifications" | "settings";
+  label: "home" | "marketplace" | "postListing" | "myListings" | "requests" | "impact" | "notifications" | "settings";
   icon: LucideIcon;
   ready: boolean;
   /** Show only to users holding one of these roles. */
@@ -24,8 +24,9 @@ export type AppNavItem = {
 
 export const APP_NAV: readonly AppNavItem[] = [
   { href: "/dashboard", label: "home", icon: House, ready: true, tab: true, match: /^\/dashboard/ },
-  { href: "/marketplace", label: "marketplace", icon: LayoutGrid, ready: true, tab: true, match: /^\/(marketplace|browse|listings\/(?!new))/ },
-  { href: "/listings/new", label: "postListing", icon: PackagePlus, ready: false, roles: ["provider"], tab: true, match: /^\/listings\/new/ },
+  { href: "/marketplace", label: "marketplace", icon: LayoutGrid, ready: true, tab: true, match: /^\/(marketplace|browse|listings\/(?!new)[^/]+$)/ },
+  { href: "/listings/new", label: "postListing", icon: PackagePlus, ready: true, roles: ["provider"], tab: true, match: /^\/listings\/new/ },
+  { href: "/my-listings", label: "myListings", icon: List, ready: true, roles: ["provider"], tab: false, match: /^\/(my-listings|listings\/[^/]+\/edit)/ },
   { href: "/requests", label: "requests", icon: Send, ready: false, tab: true, match: /^\/requests/ },
   { href: "/impact", label: "impact", icon: Leaf, ready: false, tab: false, match: /^\/impact/ },
   { href: "/notifications", label: "notifications", icon: Bell, ready: true, tab: true, match: /^\/notifications/ },

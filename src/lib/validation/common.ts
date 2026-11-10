@@ -18,6 +18,15 @@ export const VALIDATION_CODES = [
   "tooShort",
   "rolesRequired",
   "confirmationMismatch",
+  "quantityInvalid",
+  "priceRequired",
+  "priceInvalid",
+  "locationRequired",
+  "outsideBangladesh",
+  "windowInvalid",
+  "windowPast",
+  "windowTooLong",
+  "tooManyPhotos",
 ] as const;
 export type ValidationCode = (typeof VALIDATION_CODES)[number];
 

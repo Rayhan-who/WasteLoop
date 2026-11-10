@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Inbox, Leaf, PackageOpen, Send, type LucideIcon } from "lucide-react";
+import { ArrowRight, Inbox, Leaf, PackageOpen, PackagePlus, Send, TrendingUp, type LucideIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import truck from "@/assets/illustrations/garbage-truck.jpg";
 import { PageBanner } from "@/components/app-shell/page-banner";
@@ -12,6 +12,7 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { Button } from "@/components/ui/button";
 import { TAKER_ROLES } from "@/lib/domain";
 import { getLatestListings, listingPhotoUrl } from "@/lib/listings/queries";
+import { forecastSupplyDemand } from "@/lib/ml";
 import { getCurrentProfile } from "@/lib/profile";
 import { LOGIN_PATH } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/server";
@@ -46,7 +47,13 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
   const profile = await getCurrentProfile();
   if (!profile) redirect(LOGIN_PATH);
 
-  const [t, format, params, supabase] = await Promise.all([getTranslations("dashboard"), getFormatter(), searchParams, createClient()]);
+  const [t, tStreams, format, params, supabase] = await Promise.all([
+    getTranslations("dashboard"),
+    getTranslations("streams"),
+    getFormatter(),
+    searchParams,
+    createClient(),
+  ]);
   const isProvider = profile.roles.includes("provider");
   const isTaker = profile.roles.some((r) => (TAKER_ROLES as readonly string[]).includes(r));
 
@@ -70,6 +77,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
     supabase.rpc("public_impact_stats").then((r) => r.data?.[0] ?? null),
   ]);
   const photos = await Promise.all(latest.map((l) => listingPhotoUrl(l.cover_photo_path)));
+  // FR-4.6 (deferred ML): supply/demand forecast for providers. Null today, so nothing is shown.
+  const forecast = isProvider ? await forecastSupplyDemand({ userId: profile.id, area: profile.general_location }) : null;
   const kg = (impact.data ?? []).reduce((sum, r) => sum + Number(r.quantity_kg), 0);
   const name = profile.org_name ?? profile.display_name;
   const now = new Date();
@@ -80,10 +89,17 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
     <>
       <PageBanner eyebrow={t("hello")} title={name} subtitle={profile.general_location ?? undefined}>
         <Button asChild size="lg" className="h-12 rounded-full bg-wl-on-inverse px-6 text-wl-inverse hover:bg-wl-on-inverse/90">
-          <Link href="/marketplace">
-            {t("openMarketplace")}
-            <ArrowRight aria-hidden className="size-4" />
-          </Link>
+          {isProvider ? (
+            <Link href="/listings/new">
+              <PackagePlus aria-hidden className="size-4" />
+              {t("postSurplus")}
+            </Link>
+          ) : (
+            <Link href="/marketplace">
+              {t("openMarketplace")}
+              <ArrowRight aria-hidden className="size-4" />
+            </Link>
+          )}
         </Button>
       </PageBanner>
 
@@ -107,10 +123,19 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
           ) : null}
         </div>
 
+        {forecast ? (
+          <Notice>
+            <TrendingUp aria-hidden className="mr-1 inline size-4" />
+            {t(`forecast.${forecast.value.trend}`, { stream: tStreams(forecast.value.stream) })} {forecast.explanation}
+          </Notice>
+        ) : null}
+
         <section aria-label={t("statsLabel")} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {isProvider ? (
             <>
-              <StatCard icon={PackageOpen} label={t("stats.liveListings")} value={format.number(activeListings?.count ?? 0)} />
+              <Link href="/my-listings" className="rounded-2xl">
+                <StatCard icon={PackageOpen} label={t("stats.liveListings")} value={format.number(activeListings?.count ?? 0)} />
+              </Link>
               <StatCard icon={Inbox} label={t("stats.waiting")} value={format.number(pending)} tone={pending > 0 ? "attention" : undefined} />
             </>
           ) : null}

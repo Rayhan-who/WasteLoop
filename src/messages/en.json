@@ -29,7 +29,8 @@
     "impact": "Impact",
     "notifications": "Alerts",
     "settings": "Settings",
-    "notificationsCount": "{count, plural, =0 {Alerts} one {Alerts, # unread} other {Alerts, # unread}}"
+    "notificationsCount": "{count, plural, =0 {Alerts} one {Alerts, # unread} other {Alerts, # unread}}",
+    "myListings": "My listings"
   },
   "footer": {
     "copyright": "© {year} WasteLoop",
@@ -84,7 +85,16 @@
     "tooLong": "This is too long.",
     "tooShort": "This is too short.",
     "rolesRequired": "Choose at least one role.",
-    "confirmationMismatch": "Type the word exactly as shown."
+    "confirmationMismatch": "Type the word exactly as shown.",
+    "quantityInvalid": "Enter a quantity greater than zero.",
+    "priceRequired": "Enter a price for a listing that is for sale.",
+    "priceInvalid": "Enter a price greater than zero.",
+    "locationRequired": "Set the pickup point on the map.",
+    "outsideBangladesh": "The pickup point must be in Bangladesh.",
+    "windowInvalid": "The end time must be after the start time.",
+    "windowPast": "The end time is already in the past.",
+    "windowTooLong": "A listing can be available for at most 60 days.",
+    "tooManyPhotos": "You can add up to 6 photos."
   },
   "formErrors": {
     "validation": "Please fix the highlighted fields.",
@@ -97,7 +107,13 @@
     "accountSuspended": "This account has been suspended. Contact support if you think this is a mistake.",
     "sessionExpired": "Your session has expired. Please start again.",
     "notAllowed": "You are not allowed to do that.",
-    "generic": "Something went wrong. Please try again."
+    "generic": "Something went wrong. Please try again.",
+    "notProvider": "Only providers can post listings. Add the Provider role in Settings.",
+    "notFound": "We could not find that listing.",
+    "listingLocked": "This listing can't be changed in its current state.",
+    "hasRequests": "This listing has requests, so it can't be deleted. Pause it instead.",
+    "windowPassed": "The availability window has ended. Edit the listing and set new times first.",
+    "uploadFailed": "The photos could not be saved. Please try again."
   },
   "roleDescriptions": {
     "provider": "I have surplus food or waste to give away or sell",
@@ -258,6 +274,12 @@
       "kg": "Kilograms kept out of landfill",
       "active": "Listings available now",
       "completed": "Completed handovers"
+    },
+    "postSurplus": "Post surplus",
+    "forecast": {
+      "rising": "Demand for {stream} near you is rising.",
+      "steady": "Demand for {stream} near you is steady.",
+      "falling": "Demand for {stream} near you is falling."
     }
   },
   "settings": {
@@ -352,11 +374,164 @@
     "requestSoon": "Sending requests opens in the next update.",
     "postedBy": "Posted by",
     "rating": "{avg} ({count, plural, one {# review} other {# reviews}})",
-    "noRatings": "No reviews yet"
+    "noRatings": "No reviews yet",
+    "edit": "Edit listing",
+    "manage": "Manage my listings",
+    "freshness": {
+      "fresh": "Looks fresh.",
+      "use_soon": "Best collected soon.",
+      "check_carefully": "Check carefully before collecting."
+    }
   },
   "notifications": {
     "title": "Alerts",
     "empty": "No alerts yet. We'll let you know when something happens with your listings or requests.",
     "unread": "Unread:"
+  },
+  "listingForm": {
+    "newEyebrow": "Post surplus",
+    "newTitle": "New listing",
+    "newSubtitle": "Three quick steps. Nearby takers see it as soon as you publish.",
+    "editEyebrow": "Edit listing",
+    "editTitle": "Edit listing",
+    "notProviderTitle": "Posting is for providers",
+    "notProviderBody": "Your account doesn't have the Provider role yet. Add it in Settings and you can post straight away.",
+    "notProviderCta": "Add the Provider role",
+    "lockedTitle": "This listing can't be edited now",
+    "lockedBody": "Listings that are reserved, collected or removed are locked so both sides see the same details.",
+    "backToMyListings": "Back to my listings",
+    "progressLabel": "Listing steps",
+    "steps": {
+      "what": "What",
+      "where": "Where & when",
+      "how": "How"
+    },
+    "stepOf": "Step {step} of {total}",
+    "titles": {
+      "what": "What are you offering?",
+      "where": "Where and when can it be collected?",
+      "how": "How is it offered?"
+    },
+    "category": "Category",
+    "aiSuggestion": "Suggested category: {category}. You can change it.",
+    "errors": {
+      "category": "Choose a category.",
+      "location": "Set the pickup point: search, use your location, or tap the map.",
+      "outsideBangladesh": "The pickup point must be in Bangladesh.",
+      "geolocation": "We couldn't get your location. Search for the address or tap the map instead."
+    },
+    "title": "Title",
+    "titleHint": "Short and clear, e.g. “20 kg vegetable peels” or “Lunch buffet surplus”.",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "units": {
+      "kg": "kg",
+      "litre": "Litres",
+      "item": "Items",
+      "bag": "Bags"
+    },
+    "unitsSingular": {
+      "kg": "kg",
+      "litre": "litre",
+      "item": "item",
+      "bag": "bag"
+    },
+    "description": "Details",
+    "descriptionHint": "Condition, packaging, anything the taker should know.",
+    "photos": {
+      "label": "Photos",
+      "count": "{count} of {max}",
+      "photoAlt": "Photo {n}",
+      "cover": "Cover",
+      "makeCover": "Make photo {n} the cover",
+      "remove": "Remove photo {n}",
+      "add": "Add photo",
+      "uploading": "Uploading…",
+      "hint": "Optional but helpful. The first photo is the cover.",
+      "problem": {
+        "type": "Use a JPG, PNG or WebP photo.",
+        "size": "That photo is too large (max 15 MB).",
+        "failed": "A photo could not be uploaded. Check your connection and try again.",
+        "limit": "You can add up to {max} photos."
+      }
+    },
+    "mapLabel": "Pickup point map",
+    "findLocation": "Find the pickup point",
+    "searchPlaceholder": "Search an address or area",
+    "search": "Search",
+    "useMyLocation": "Use my location",
+    "mapHint": "Then tap the map or drag the pin to the exact spot.",
+    "noResults": "No places found. Try a nearby landmark or area name.",
+    "areaLabel": "Pickup area (public)",
+    "areaHint": "Shown to everyone, e.g. “Dhanmondi 27”. Filled in from the map; you can change it.",
+    "exactAddress": "Exact address (private)",
+    "exactAddressHint": "Only shared with the taker after you accept their request.",
+    "availability": "Available for pickup",
+    "presets": {
+      "tonight": "Until tonight",
+      "24h": "Next 24 hours",
+      "3d": "Next 3 days",
+      "7d": "Next week"
+    },
+    "from": "From",
+    "until": "Until",
+    "offerType": "Offer",
+    "offerHints": {
+      "free": "Give it away at no cost.",
+      "donation": "Donate it, e.g. to a charity.",
+      "for_sale": "Set a price. The buyer pays when they collect it."
+    },
+    "price": "Price (৳, for the whole listing)",
+    "priceHint": "The total price for everything in this listing.",
+    "priceReference": "Recent sales: about {price} per {unit} (from {samples} sales).",
+    "priceModel": "Suggested price: {price}.",
+    "foodSafety": "WasteLoop does not certify food safety. Only post food that is safe to eat, and the taker must check its condition in person.",
+    "review": "Review",
+    "back": "Back",
+    "next": "Next",
+    "saveDraft": "Save as draft",
+    "publish": "Publish",
+    "saveChanges": "Save changes",
+    "toastPublished": "Your listing is live.",
+    "toastDraft": "Saved as a draft.",
+    "toastSaved": "Changes saved."
+  },
+  "myListings": {
+    "title": "My listings",
+    "subtitle": "Everything you have posted, and what is happening with it.",
+    "post": "Post surplus",
+    "tabsLabel": "Listing status",
+    "tabs": {
+      "active": "Active",
+      "drafts": "Drafts",
+      "paused": "Paused",
+      "ended": "Ended"
+    },
+    "empty": {
+      "active": "No active listings",
+      "drafts": "No drafts",
+      "paused": "No paused listings",
+      "ended": "Nothing has ended yet"
+    },
+    "emptyHint": "Post your surplus and nearby takers will see it straight away.",
+    "views": "{count, plural, =0 {No views} one {# view} other {# views}}",
+    "requests": "{count, plural, =0 {No requests} one {# request} other {# requests}}",
+    "endsIn": "Ends {time}",
+    "actions": {
+      "edit": "Edit",
+      "republish": "Edit and republish",
+      "publish": "Publish",
+      "pause": "Pause",
+      "resume": "Resume",
+      "delete": "Delete"
+    },
+    "done": {
+      "publish": "Listing published.",
+      "pause": "Listing paused. It's hidden from the marketplace.",
+      "resume": "Listing is live again.",
+      "delete": "Listing deleted."
+    },
+    "deleteTitle": "Delete this listing?",
+    "deleteBody": "“{title}” and its photos will be removed. This can't be undone."
   }
 }

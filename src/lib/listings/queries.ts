@@ -1,6 +1,7 @@
 import "server-only";
 import { LISTING_OFFER_TYPES, WASTE_TYPES, type ListingOfferType, type WasteType } from "@/lib/domain";
-import { createClient } from "@/lib/supabase/server";
+import { recommendListings } from "@/lib/ml";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import type { Views } from "@/lib/supabase/database.types";
 
 /**
@@ -70,7 +71,16 @@ export async function getMarketplacePage(filters: MarketplaceFilters) {
 
   const { data, count, error } = await query;
   if (error) throw error;
-  return { listings: (data ?? []) as ListingCardData[], total: count ?? 0 };
+  let listings = (data ?? []) as ListingCardData[];
+
+  // FR-4.5 (deferred ML): personalised order within the page. Null today, so the fallback order stays.
+  const user = await getCurrentUser();
+  const order = await recommendListings(user?.id ?? null, listings.map((l) => l.id ?? "").filter(Boolean));
+  if (order) {
+    const rank = new Map(order.value.map((id, i) => [id, i]));
+    listings = [...listings].sort((a, b) => (rank.get(a.id ?? "") ?? 1e9) - (rank.get(b.id ?? "") ?? 1e9));
+  }
+  return { listings, total: count ?? 0 };
 }
 
 /** Listing count per stream, for the category tabs. */

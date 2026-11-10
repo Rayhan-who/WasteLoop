@@ -15,6 +15,12 @@ export const FORM_ERROR_CODES = [
   "accountSuspended",
   "sessionExpired",
   "notAllowed",
+  "notProvider",
+  "notFound",
+  "listingLocked",
+  "hasRequests",
+  "windowPassed",
+  "uploadFailed",
   "generic",
 ] as const;
 export type FormErrorCode = (typeof FORM_ERROR_CODES)[number];

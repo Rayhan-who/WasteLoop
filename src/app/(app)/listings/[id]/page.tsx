@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarClock, Lock, MapPin, ShieldAlert, Star } from "lucide-react";
+import { ArrowLeft, CalendarClock, Leaf, List, Lock, MapPin, Pencil, ShieldAlert, Star } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { OfferBadge, ProviderName, Quantity } from "@/components/listings/listing-bits";
 import { ListingImage } from "@/components/listings/listing-card";
@@ -9,7 +9,9 @@ import { StreamChip } from "@/components/listings/stream-chip";
 import { Button } from "@/components/ui/button";
 import { LISTING_STATUS_STYLES } from "@/lib/design/status";
 import type { ListingOfferType, ListingStatus, QuantityUnit, WasteType } from "@/lib/domain";
+import { canEditListing } from "@/lib/exchange/transitions";
 import { listingPhotoUrl } from "@/lib/listings/queries";
+import { freshnessIndicator } from "@/lib/ml";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +59,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<Pa
   const cover = await listingPhotoUrl(photos.data?.[0]?.storage_path ?? null);
   const providerName = listing.provider_org_name ?? listing.provider_display_name ?? "";
   const canSeeExact = listing.viewer_relation !== "public" && listing.pickup_address_exact;
+  // FR-3.8 (deferred ML): freshness indicator for edible food. Null today; the availability window is the fallback.
+  const freshness =
+    listing.available_from && listing.available_until
+      ? await freshnessIndicator({ wasteType: type, availableFrom: listing.available_from, availableUntil: listing.available_until, photoUrl: cover })
+      : null;
   const from = listing.available_from ? new Date(listing.available_from) : null;
   const until = listing.available_until ? new Date(listing.available_until) : null;
 
@@ -103,6 +110,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<Pa
               />
             </div>
 
+            {freshness ? (
+              <p className="flex gap-2 rounded-xl bg-wl-success-tint p-3 text-sm text-wl-success">
+                <Leaf aria-hidden className="mt-0.5 size-4 shrink-0" />
+                {t(`freshness.${freshness.value}`)} <span className="text-wl-ink-soft">{freshness.explanation}</span>
+              </p>
+            ) : null}
             {from && until ? (
               <p className="flex gap-2 text-sm">
                 <CalendarClock aria-hidden className="mt-0.5 size-4 shrink-0 text-wl-ink-soft" />
@@ -138,7 +151,23 @@ export default async function ListingDetailPage({ params }: { params: Promise<Pa
             </div>
 
             {listing.viewer_relation === "owner" ? (
-              <p className="rounded-xl bg-wl-chrome-soft p-3 text-center text-sm">{t("yourListing")}</p>
+              <div className="space-y-2">
+                <p className="rounded-xl bg-wl-chrome-soft p-3 text-center text-sm">{t("yourListing")}</p>
+                {canEditListing(status) ? (
+                  <Button asChild size="lg" className="h-12 w-full rounded-full">
+                    <Link href={`/listings/${listing.id}/edit`}>
+                      <Pencil aria-hidden className="size-4" />
+                      {t("edit")}
+                    </Link>
+                  </Button>
+                ) : null}
+                <Button asChild variant="outline" size="lg" className="h-12 w-full rounded-full">
+                  <Link href="/my-listings">
+                    <List aria-hidden className="size-4" />
+                    {t("manage")}
+                  </Link>
+                </Button>
+              </div>
             ) : (
               <div className="space-y-2">
                 <Button size="lg" className="h-12 w-full rounded-full" disabled>

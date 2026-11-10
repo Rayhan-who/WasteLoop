@@ -14,7 +14,7 @@ WasteLoop connects **providers** (households, restaurants, grocery stores, cater
 | 2 | Migrations, enums, tables, PostGIS, indexes, `listings_public`, RLS, `is_admin()`, `get_listing_detail()`, seed | ✅ Done |
 | 3 | Auth, roles, profiles, deactivation (FR-1.x) | ✅ Done |
 | 3½ | UI redesign: black-and-white theme, logo, new login/register, app shell with bottom tabs, marketplace with categories, listing detail | ✅ Done |
-| 4 | Listings wizard, photos, lifecycle, `ml/` seam (FR-3.x) | ⏳ |
+| 4 | Listings wizard, photos, map picker, lifecycle, `ml/` seam (FR-3.x) | ✅ Done |
 | 5 | Distance sorting, map, saved interests (FR-4.2–4.4); category browsing is already live | ⏳ |
 | 6 | Requests, messaging, pickups, state machine (FR-5.x, FR-6.1–6.3) | ⏳ |
 | 7 | Payments (mock), receipts (FR-7.1–7.3) | ⏳ |
@@ -85,6 +85,8 @@ The schema lives in hand-written SQL migrations in [`supabase/migrations/`](supa
 | `007_public_views.sql` | `listings_public`, `profiles_public`, `get_listing_detail()`, landing-page counters |
 | `008_rls.sql` | Grants and RLS policies for every table |
 | `009_storage.sql` | `listing-photos` (public) and `verification-docs` (private) buckets and policies |
+| `010_account.sql` | E-mail sync, `data_removal_requests` |
+| `011_listing_helpers.sql` | `price_reference()`: the FR-7.4 price-hint fallback |
 
 [`supabase/seed.sql`](supabase/seed.sql) creates eight demo accounts (password `WasteLoop#2026`) and 20 listings across Dhaka, in every stream, offer type and status. It also includes completed exchanges with reviews, a paid sale with a receipt, impact records, a verification queue and an open report.
 
@@ -168,6 +170,11 @@ Every FR ID from the SRS maps to the file(s) that implement it. This table grows
 | FR-1.2 | Multiple roles per user, chosen at sign-up and editable; admin never self-granted | [`003_profiles_roles.sql`](supabase/migrations/003_profiles_roles.sql) (`user_roles`, `handle_new_user`), [`src/components/account/role-picker.tsx`](src/components/account/role-picker.tsx), [`src/lib/actions/account.ts`](src/lib/actions/account.ts) (`updateRolesAction`), [`tests/db/integrity.test.ts`](tests/db/integrity.test.ts) |
 | FR-1.x | Profile editing; language saved to the profile and restored at login | [`src/app/(app)/settings/page.tsx`](src/app/(app)/settings/page.tsx), [`src/components/settings/`](src/components/settings/), [`src/app/actions/locale.ts`](src/app/actions/locale.ts), [`src/lib/validation/profile.ts`](src/lib/validation/profile.ts) |
 | FR-1.x | Deactivation and data-removal request | [`010_account.sql`](supabase/migrations/010_account.sql), [`src/lib/actions/account.ts`](src/lib/actions/account.ts) (`deactivateAccountAction`), [`src/components/settings/deactivate-account.tsx`](src/components/settings/deactivate-account.tsx), [`tests/db/account.test.ts`](tests/db/account.test.ts) |
+| FR-3.1 | Post a listing: three-step wizard (what / where and when / how), photos, map pin | [`src/app/(app)/listings/new/page.tsx`](src/app/(app)/listings/new/page.tsx), [`src/components/listings/listing-wizard.tsx`](src/components/listings/listing-wizard.tsx), [`src/components/listings/photo-uploader.tsx`](src/components/listings/photo-uploader.tsx), [`src/components/map/location-picker.tsx`](src/components/map/location-picker.tsx), [`src/lib/actions/listings.ts`](src/lib/actions/listings.ts) (`createListingAction`), [`src/lib/validation/listing.ts`](src/lib/validation/listing.ts), [`tests/db/listings.test.ts`](tests/db/listings.test.ts) |
+| FR-3.2 | Edit a listing (locked once reserved, collected or removed) | [`src/app/(app)/listings/[id]/edit/page.tsx`](src/app/(app)/listings/[id]/edit/page.tsx), `updateListingAction` |
+| FR-3.3 | Lifecycle: publish, pause, resume, delete; guarded transitions that throw | [`src/lib/exchange/transitions.ts`](src/lib/exchange/transitions.ts), [`src/app/(app)/my-listings/page.tsx`](src/app/(app)/my-listings/page.tsx), [`src/components/listings/my-listing-actions.tsx`](src/components/listings/my-listing-actions.tsx), [`tests/transitions.test.ts`](tests/transitions.test.ts) |
+| FR-3.4 | Availability window, entered as Dhaka time, with quick presets | [`src/lib/datetime.ts`](src/lib/datetime.ts), [`tests/datetime.test.ts`](tests/datetime.test.ts) |
+| — | Geocoding: server-side, rate-limited Nominatim wrapper | [`src/lib/geo/geocode.ts`](src/lib/geo/geocode.ts), [`src/lib/geo/bounds.ts`](src/lib/geo/bounds.ts) |
 | FR-4.1 | Marketplace: browse public listings by waste category and offer type, 20 per page, filtered in SQL | [`src/app/(app)/marketplace/page.tsx`](src/app/(app)/marketplace/page.tsx), [`src/lib/listings/queries.ts`](src/lib/listings/queries.ts), [`src/components/listings/`](src/components/listings/) |
 | §4.4 (UI) | Listing detail: approximate area for everyone, exact address only for owner / accepted taker / admin; food-safety notice on edible food | [`src/app/(app)/listings/[id]/page.tsx`](src/app/(app)/listings/[id]/page.tsx) |
 | — | Community counters (kg diverted, active listings, completed handovers) | [`src/app/(app)/dashboard/page.tsx`](src/app/(app)/dashboard/page.tsx) (`public_impact_stats()`) |
@@ -182,20 +189,20 @@ Every FR ID from the SRS maps to the file(s) that implement it. This table grows
 
 ## Deferred — Phase 2 (ML)
 
-These SRS requirements are deliberately not built in this phase. Each one gets a stub in `src/lib/ml/` (milestone 4) that is already called from its real code path, returns `null` today, and has a working rule-based fallback, so turning on its flag is the only change needed.
+These SRS requirements are deliberately not built in this phase. [`src/lib/ml/index.ts`](src/lib/ml/index.ts) exports one stub per requirement, each behind a flag in [`src/lib/ml/flags.ts`](src/lib/ml/flags.ts) (all `false` by default, read from the environment). Each stub returns `null` today, and its caller falls back to a simple rule. When a model exists, implementing the stub and turning on its flag is the only change. Every prediction type carries a confidence, a model version and an explanation, and is shown as an advisory, overridable suggestion (SRS §4.8).
 
-| FR | Feature | Fallback in this phase |
-|---|---|---|
-| FR-3.6 | Photo → waste category | Manual category picker |
-| FR-3.7 | Quantity / resource-value estimation | Provider enters quantity |
-| FR-3.8 | Freshness indicator | Availability window only |
-| FR-4.5 | Personalised recommendations | Sort by distance, then posting freshness |
-| FR-4.6 | Supply/demand forecasting | Not shown |
-| FR-6.4 | Route clustering | Left out of the UI |
-| FR-6.5 | Completion-likelihood score | Not shown |
-| FR-7.4 | Fair price suggestion | Recent median price per kg for the material (≥ 5 samples), otherwise nothing |
-| FR-11.4 | Anomaly detection | Admin review of reports |
-| FR-11.5 | Content screening | Manual user reports only |
+| FR | Feature | Stub | Called from | Fallback in this phase |
+|---|---|---|---|---|
+| FR-3.6 | Photo → waste category | `suggestCategory` | Listing wizard, after the first photo upload | Manual category picker |
+| FR-3.7 | Quantity / resource-value estimation | `estimateQuantity` | Listing wizard, after the first photo upload | Provider enters the quantity |
+| FR-3.8 | Freshness indicator | `freshnessIndicator` | Listing detail page | Availability window and time left |
+| FR-4.5 | Personalised recommendations | `recommendListings` | `getMarketplacePage` | Available before reserved, newest first (distance sort arrives in milestone 5) |
+| FR-4.6 | Supply/demand forecasting | `forecastSupplyDemand` | Provider dashboard | Not shown |
+| FR-6.4 | Route clustering | `clusterRoutes` | Requests overview (milestone 6) | Left out of the UI |
+| FR-6.5 | Completion-likelihood score | `completionLikelihood` | Exchange workspace (milestone 6) | Not shown |
+| FR-7.4 | Fair price suggestion | `suggestPrice` | Listing wizard, step 3 (for sale) | `price_reference()`: median price per unit for the same stream and unit from paid sales in the last 180 days, shown only with 5 or more samples |
+| FR-11.4 | Anomaly detection | `detectAnomalies` | Admin dashboard (milestone 11) | Admin review of user reports |
+| FR-11.5 | Content screening | `screenContent` | `createListingAction`, `updateListingAction` | Manual user reports only |
 
 ## Decisions
 
@@ -243,6 +250,14 @@ Choices made where the brief was ambiguous or the toolchain had changed.
 
 40. **Login first, deny by default.** The product owner asked that nobody enters WasteLoop without logging in. [`src/lib/routes.ts`](src/lib/routes.ts) therefore lists the only public pages (login, register, forgot password, reset password, the auth e-mail callback); every other path, including ones added later, redirects to `/login?next=…`. This replaces the original spec's public landing page and public `/browse` and listing pages. The landing page's "connection platform only" notice moved under the auth card, and its live counters moved to the dashboard. The database-level privacy rules are unchanged, and they still matter: the anon key is public, so RLS remains the real protection.
 41. **Light theme by default.** The original spec defaulted to the device setting. The product owner's "mostly white" direction makes light the default; dark mode stays available in settings.
+
+42. **Date/time inputs are Dhaka time.** `<input type="datetime-local">` carries no time zone. Bangladesh has one zone and no daylight saving (UTC+06:00), so these values are read and written as Dhaka time on both the server and the browser. A server running in UTC would otherwise shift every window by six hours.
+43. **The map picker arrived with listings, not browsing.** A listing needs an exact pickup point, so the Leaflet map (tap or drag the pin, address search, "use my location") is part of the wizard now. Milestone 5 reuses it for browsing.
+44. **Price hint per unit, not per kilogram.** The FR-7.4 fallback compares listings of the same stream *and unit*, so no kilogram conversion is needed (that table arrives with impact tracking in milestone 10). `price_amount` is the price for the whole listing.
+45. **Photos are resized in the browser** to at most 1600 px and re-encoded (WebP where supported) before upload. Photos uploaded and then removed in the same session are deleted from Storage at once. Photos uploaded in a wizard that is then abandoned stay in the user's own folder; a clean-up job is planned for milestone 9's cron.
+46. **Nominatim User-Agent.** OpenStreetMap refuses generic or placeholder User-Agents with HTTP 403. The default identifies the app by its public repository URL. Set `NOMINATIM_USER_AGENT` to your own app name plus a URL or contact address for production.
+47. **Expired listings are republished by editing.** "Publish" is offered for drafts. An expired listing first needs a new availability window, so its action is "Edit and republish".
+48. **Delete only before any request.** A listing that has ever received a request cannot be deleted (foreign key RESTRICT); the provider pauses it instead, so the exchange history stays intact.
 
 ## Payments
 
